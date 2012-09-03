@@ -1,0 +1,22 @@
+﻿EasyDb.NET - An Easy Database Helper for .NET
+
+Authors:
+	Longshine He <longshinehe@users.sourceforge.net>
+
+Copyright (C) 2012 Longshine He
+
+ABOUT
+
+EasyDb.NET is a .NET library for simplifying interaction with
+various databases. Main features include:
+1. Small and easy to use. Helps get rid of the repeating
+   trivia such as opening and closing connections to simplify
+   the development.
+2. Cross-database. Provides db-irrelevant interfaces. To use
+   a custom db, find the driver library and set a single-line
+   configuration, then the EasyDb is ready to work.
+3. Multi-databases manipulation support (master/slave mode).
+   Operations can be perform on both master and slave db(s).
+
+This code is distributed in the hope that it will be useful,
+but WITHOUT WARRANTY OF ANY KIND.
