@@ -27,7 +27,7 @@ namespace LX.EasyDb
         /// <summary>
         /// Occurs when an operation is taken.
         /// </summary>
-        public event EventHandler<DbOperationEventArgs> Operated;
+        public event EventHandler<DbOperationEventArgs> Operating;
 
         /// <summary>
         /// Occurs when a transaction takes actions.
@@ -184,8 +184,8 @@ namespace LX.EasyDb
 
         private void RaiseOperatedEvent(DbOperationType operation, IDbCommand comm)
         {
-            if (Operated != null && comm.Transaction == null)
-                Operated(this, new DbOperationEventArgs(new DbOperationBlock(operation, comm.CommandText, comm.Parameters, comm.CommandType)));
+            if (Operating != null && comm.Transaction == null)
+                Operating(this, new DbOperationEventArgs(new DbOperationBlock(operation, comm.CommandText, comm.Parameters, comm.CommandType)));
             else if (Transacting != null && comm.Transaction != null)
                 Transacting(GetTransaction(comm.Transaction), new DbTransactionEventArgs(DbTransactionEventType.Operation, new DbOperationBlock(operation, comm.CommandText, comm.Parameters, comm.CommandType)));
         }

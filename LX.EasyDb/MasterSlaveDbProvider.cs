@@ -42,7 +42,7 @@ namespace LX.EasyDb
         {
             if (slaveProviders != null)
                 _slaveProviders.AddRange(slaveProviders);
-            Operated += new EventHandler<DbOperationEventArgs>(OnPrimaryProviderOperated);
+            Operating += new EventHandler<DbOperationEventArgs>(OnPrimaryProviderOperated);
             Transacting += new EventHandler<DbTransactionEventArgs>(OnPrimaryProviderTransacting);
         }
 
