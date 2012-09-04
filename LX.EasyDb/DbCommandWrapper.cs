@@ -16,9 +16,9 @@ using System.Data.Common;
 
 namespace LX.EasyDb
 {
-    abstract class DbCommandWrapper : DbCommand
+    class DbCommandWrapper : DbCommand
     {
-        protected IDbCommand _comm;
+        private IDbCommand _comm;
 
         public DbCommandWrapper(IDbCommand comm)
         {
@@ -85,6 +85,21 @@ namespace LX.EasyDb
         {
             get { return _comm.UpdatedRowSource; }
             set { _comm.UpdatedRowSource = value; }
+        }
+
+        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+        {
+            return (DbDataReader)_comm.ExecuteReader(behavior);
+        }
+
+        public override Int32 ExecuteNonQuery()
+        {
+            return _comm.ExecuteNonQuery();
+        }
+
+        public override Object ExecuteScalar()
+        {
+            return _comm.ExecuteScalar();
         }
     }
 }

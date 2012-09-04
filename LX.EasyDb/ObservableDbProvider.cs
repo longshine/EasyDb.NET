@@ -11,6 +11,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace LX.EasyDb
@@ -21,11 +22,17 @@ namespace LX.EasyDb
     public class ObservableDbProvider : IDbProvider
     {
         private IDbProvider _providerToObserve;
+        private Dictionary<IDbTransaction, ITransaction> _transactionMap = new Dictionary<IDbTransaction, ITransaction>();
 
         /// <summary>
         /// Occurs when an operation is taken.
         /// </summary>
         public event EventHandler<DbOperationEventArgs> Operated;
+
+        /// <summary>
+        /// Occurs when a transaction takes actions.
+        /// </summary>
+        public event EventHandler<DbTransactionEventArgs> Transacting;
 
         /// <summary>
         /// Initializes with a <see cref="LX.EasyDb.IDbProvider"/> to be observed.
@@ -67,10 +74,14 @@ namespace LX.EasyDb
         /// Starts a database transaction.
         /// </summary>
         /// <returns>An <see cref="LX.EasyDb.ITransaction"/> representing the new transaction.</returns>
-        public ITransaction BeginTransaction()
+        public virtual ITransaction BeginTransaction()
         {
-            // TODO
-            throw new NotImplementedException();
+            IDbConnection conn = GetConnection();
+            conn.Open();
+            IDbTransaction dbTran = conn.BeginTransaction();
+            ObservableDbTransaction tran = new ObservableDbTransaction(this, dbTran);
+            AddTransaction(dbTran, tran);
+            return tran;
         }
 
         /// <summary>
@@ -156,10 +167,33 @@ namespace LX.EasyDb
             return _providerToObserve.CreateDataAdapter(selectCommandText, parameters, commandType);
         }
 
-        private void RaiseOperatedEvent(DbOperationType operation, String command, IDataParameterCollection parameters, CommandType commandType)
+        private void AddTransaction(IDbTransaction dbTran, ITransaction tran)
         {
-            if (Operated != null)
-                Operated(this, new DbOperationEventArgs(new DbOperationBlock(operation, command, parameters, commandType)));
+            _transactionMap.Add(dbTran, tran);
+        }
+
+        private void RemoveTransaction(IDbTransaction dbTran)
+        {
+            _transactionMap.Remove(dbTran);
+        }
+
+        private ITransaction GetTransaction(IDbTransaction dbTran)
+        {
+            return _transactionMap[dbTran];
+        }
+
+        private void RaiseOperatedEvent(DbOperationType operation, IDbCommand comm)
+        {
+            if (Operated != null && comm.Transaction == null)
+                Operated(this, new DbOperationEventArgs(new DbOperationBlock(operation, comm.CommandText, comm.Parameters, comm.CommandType)));
+            else if (Transacting != null && comm.Transaction != null)
+                Transacting(GetTransaction(comm.Transaction), new DbTransactionEventArgs(DbTransactionEventType.Operation, new DbOperationBlock(operation, comm.CommandText, comm.Parameters, comm.CommandType)));
+        }
+
+        private void RaiseTransactingEvent(ITransaction transaction, DbTransactionEventType type)
+        { 
+            if (Transacting != null)
+                Transacting(transaction, new DbTransactionEventArgs(type, null));
         }
 
         class ObservableDbCommandWrapper : DbCommandWrapper
@@ -174,28 +208,56 @@ namespace LX.EasyDb
 
             public override Int32 ExecuteNonQuery()
             {
-                Int32 rowsAffected = _comm.ExecuteNonQuery();
+                Int32 rowsAffected = base.ExecuteNonQuery();
                 RaiseOperatedEvent(DbOperationType.ExecuteNonQuery);
                 return rowsAffected;
             }
 
             protected override System.Data.Common.DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
             {
-                IDataReader reader = _comm.ExecuteReader(behavior);
+                System.Data.Common.DbDataReader reader = base.ExecuteDbDataReader(behavior);
                 RaiseOperatedEvent(DbOperationType.ExecuteReader);
-                return (System.Data.Common.DbDataReader)reader;
+                return reader;
             }
 
             public override Object ExecuteScalar()
             {
-                Object result = _comm.ExecuteScalar();
+                Object result = base.ExecuteScalar();
                 RaiseOperatedEvent(DbOperationType.ExecuteScalar);
                 return result;
             }
 
             private void RaiseOperatedEvent(DbOperationType operation)
             {
-                _provider.RaiseOperatedEvent(operation, this.CommandText, this.Parameters, this.CommandType);
+                _provider.RaiseOperatedEvent(operation, this);
+            }
+        }
+
+        class ObservableDbTransaction : DbTransactionWrapper
+        {
+            private ObservableDbProvider _provider;
+
+            public ObservableDbTransaction(ObservableDbProvider provider, IDbTransaction tran)
+                : base(provider, tran)
+            {
+                _provider = provider;
+            }
+
+            public override void Commit()
+            {
+                base.Commit();
+                _provider.RaiseTransactingEvent(this, DbTransactionEventType.Commit);
+            }
+
+            public override void Rollback()
+            {
+                base.Rollback();
+                _provider.RaiseTransactingEvent(this, DbTransactionEventType.Rollback);
+            }
+
+            protected override IDbCommand Wrap(IDbCommand comm)
+            {
+                return new ObservableDbCommandWrapper(_provider, comm);
             }
         }
     }

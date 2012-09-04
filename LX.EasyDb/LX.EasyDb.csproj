@@ -49,6 +49,8 @@
     <Compile Include="DbCommandWrapper.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="DbTransactionEventArgs.cs" />
+    <Compile Include="DbTransactionWrapper.cs" />
     <Compile Include="DummyProvider.cs" />
     <Compile Include="EasyDbHelper.cs" />
     <Compile Include="DbProvider.cs" />
@@ -63,6 +65,12 @@
     <Compile Include="DbOperationBlock.cs" />
     <Compile Include="DbExceptionEventArgs.cs" />
     <Compile Include="DbOperationEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

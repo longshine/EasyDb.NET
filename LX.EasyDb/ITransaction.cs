@@ -17,5 +17,9 @@ namespace LX.EasyDb
     /// </summary>
     public interface ITransaction : System.Data.IDbTransaction, IDbOperation
     {
+        /// <summary>
+        /// Gets the provider associated with this transaction.
+        /// </summary>
+        IDbProvider Provider { get; }
     }
 }

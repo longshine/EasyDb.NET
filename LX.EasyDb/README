@@ -15,8 +15,8 @@ various databases. Main features include:
 2. Cross-database. Provides db-irrelevant interfaces. To use
    a custom db, find the driver library and set a single-line
    configuration, then the EasyDb is ready to work.
-3. Multi-databases manipulation support (master/slave mode).
-   Operations can be perform on both master and slave db(s).
+3. (experimental) Multi-databases manipulation support (master/slave
+   mode). Operations can be perform on both master and slave db(s).
 
 This code is distributed in the hope that it will be useful,
 but WITHOUT WARRANTY OF ANY KIND.

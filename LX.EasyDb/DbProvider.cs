@@ -52,7 +52,7 @@ namespace LX.EasyDb
         {
             IDbConnection conn = GetConnection();
             conn.Open();
-            return new DbTransactionWrapper(this, conn.BeginTransaction());
+            return new ManagedDbTransaction(this, conn.BeginTransaction());
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace LX.EasyDb
         /// <returns><see cref="System.Data.IDbCommand"/></returns>
         public IDbCommand CreateCommand(String commandText, IDbDataParameter[] parameters, CommandType commandType)
         {
-            return CreateCommand(commandText, parameters, commandType, true);
+            return CreateManagedCommand(GetConnection(), commandText, parameters, commandType);
         }
 
         /// <summary>
@@ -144,20 +144,24 @@ namespace LX.EasyDb
         public IDbDataAdapter CreateDataAdapter(String selectCommandText, IDbDataParameter[] parameters, CommandType commandType)
         {
             IDbDataAdapter ada = Factory.CreateDataAdapter();
-            ada.SelectCommand = CreateCommand(selectCommandText, parameters, commandType, false);
+            ada.SelectCommand = CreateDbCommand(GetConnection(), selectCommandText, parameters, commandType);
             return ada;
         }
 
-        private IDbCommand CreateCommand(String commandText, IDbDataParameter[] parameters, CommandType commandType, Boolean wrapped)
+        private static IDbCommand CreateManagedCommand(IDbConnection conn, String commandText, IDbDataParameter[] parameters, CommandType commandType)
+        {
+            return new ManagedDbCommandWrapper(CreateDbCommand(conn, commandText, parameters, commandType));
+        }
+
+        /// <summary>
+        /// Creates an instance of unwrapped DbCommand.
+        /// This is helpful since wrapped commands cannot be used in IDbDataAdapter and ITransaction.
+        /// </summary>
+        internal static IDbCommand CreateDbCommand(IDbConnection conn, String commandText, IDbDataParameter[] parameters, CommandType commandType)
         {
             if (String.IsNullOrEmpty(commandText))
                 throw new ArgumentNullException("commandText");
 
-            return CreateCommand(GetConnection(), commandText, parameters, commandType, wrapped);
-        }
-
-        private IDbCommand CreateCommand(IDbConnection conn, String commandText, IDbDataParameter[] parameters, CommandType commandType, Boolean wrapped)
-        {
             IDbCommand comm = conn.CreateCommand();
 
             comm.CommandText = commandText;
@@ -171,7 +175,7 @@ namespace LX.EasyDb
                 }
             }
 
-            return wrapped ? new ManagedDbCommandWrapper(comm) : comm;
+            return comm;
         }
 
         class ManagedDbCommandWrapper : DbCommandWrapper
@@ -187,7 +191,7 @@ namespace LX.EasyDb
                 try
                 {
                     Connection.Open();
-                    reader = _comm.ExecuteReader(behavior);
+                    reader = base.ExecuteDbDataReader(behavior);
                 }
                 catch (Exception ex)
                 {
@@ -209,7 +213,7 @@ namespace LX.EasyDb
                 try
                 {
                     Connection.Open();
-                    rowsAffected = _comm.ExecuteNonQuery();
+                    rowsAffected = base.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
@@ -230,7 +234,7 @@ namespace LX.EasyDb
                 try
                 {
                     Connection.Open();
-                    result = _comm.ExecuteScalar();
+                    result = base.ExecuteScalar();
                 }
                 catch (Exception ex)
                 {
@@ -245,94 +249,16 @@ namespace LX.EasyDb
             }
         }
 
-        class DbTransactionWrapper : ITransaction
+        class ManagedDbTransaction : DbTransactionWrapper
         {
-            private IDbTransaction _tran;
-            private DbProvider _provider;
-            private IDbConnection _conn;
-
-            public DbTransactionWrapper(DbProvider provider, IDbTransaction tran)
+            public ManagedDbTransaction(DbProvider provider, IDbTransaction tran)
+                : base(provider, tran)
             {
-                _provider = provider;
-                _tran = tran;
-                _conn = tran.Connection;
             }
 
-            public void Commit()
+            protected override IDbCommand Wrap(IDbCommand comm)
             {
-                _tran.Commit();
-                _conn.Close();
-            }
-
-            public IDbConnection Connection
-            {
-                get { return _conn; }
-            }
-
-            public IsolationLevel IsolationLevel
-            {
-                get { return _tran.IsolationLevel; }
-            }
-
-            public void Rollback()
-            {
-                _tran.Rollback();
-                _conn.Close();
-            }
-
-            public void Dispose()
-            {
-                _tran.Dispose();
-                _tran = null;
-            }
-
-            public IDbConnection GetConnection()
-            {
-                return _conn;
-            }
-
-            public IDbDataParameter CreateParameter(String name, Object value)
-            {
-                return _provider.CreateParameter(name, value);
-            }
-
-            public IDbCommand CreateCommand(String commandText)
-            {
-                return CreateCommand(commandText, null, CommandType.Text);
-            }
-
-            public IDbCommand CreateCommand(String commandText, IDbDataParameter[] parameters)
-            {
-                return CreateCommand(commandText, parameters, CommandType.Text);
-            }
-
-            public IDbCommand CreateCommand(String commandText, IDbDataParameter[] parameters, CommandType commandType)
-            {
-                if (String.IsNullOrEmpty(commandText))
-                    throw new ArgumentNullException("command");
-
-                IDbCommand comm = _provider.CreateCommand(_conn, commandText, parameters, commandType, false);
-                comm.Transaction = _tran;
-
-                return comm;
-            }
-
-            public IDbDataAdapter CreateDataAdapter()
-            {
-                return _provider.CreateDataAdapter();
-            }
-
-            public IDbDataAdapter CreateDataAdapter(String selectCommandText, IDbDataParameter[] parameters, CommandType commandType)
-            {
-                IDbDataAdapter ada = null;
-
-                IDbCommand selectCommand = _provider.CreateCommand(_conn, selectCommandText, parameters, commandType, false);
-                selectCommand.Transaction = _tran;
-
-                ada = _provider.Factory.CreateDataAdapter();
-                ada.SelectCommand = selectCommand;
-
-                return ada;
+                return new DbCommandWrapper(comm);
             }
         }
     }
