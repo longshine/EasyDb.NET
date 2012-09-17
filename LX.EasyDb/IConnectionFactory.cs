@@ -20,6 +20,10 @@ namespace LX.EasyDb
     public interface IConnectionFactory
     {
         /// <summary>
+        /// Gets or sets the name of this factory.
+        /// </summary>
+        String Name { get; set; }
+        /// <summary>
         /// Gets an opened connection.
         /// </summary>
         /// <returns>an instance of <see cref="LX.EasyDb.IConnection"/></returns>
@@ -60,6 +64,11 @@ namespace LX.EasyDb
         {
             _factory = factory;
         }
+
+        /// <summary>
+        /// Gets or sets the name of this factory.
+        /// </summary>
+        public String Name { get; set; }
 
         /// <summary>
         /// Gets the ORM in this factory.

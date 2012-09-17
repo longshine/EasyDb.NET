@@ -19,76 +19,24 @@ using LX.EasyDb.Configuration;
 namespace LX.EasyDb
 {
     /// <summary>
-    /// Data Helper
+    /// Easy Data Helper
     /// </summary>
     public static class EasyDbHelper
     {
-        private static IDbProvider _dummy = new DummyProvider();
-        private static IDbProvider _provider = _dummy;
+        private static IConnectionFactory _factory;
 
         /// <summary>
-        /// Gets the provider of EasyDbHelper.
+        /// Gets the connection factory of EasyDbHelper.
         /// </summary>
-        public static IDbProvider Provider
+        public static IConnectionFactory ConnectionFactory
         {
-            get { return _provider; }
-            internal set
-            {
-                _provider = value == null ? _dummy : value;
-            }
+            get { return _factory; }
+            internal set { _factory = value == null ? null : value; }
         }
 
         static EasyDbHelper()
         {
             LoadConfiguration();
-        }
-
-        /// <summary>
-        /// Initializes EasyDbHelper.
-        /// </summary>
-        /// <param name="provider">the provider that implements the data source classes</param>
-        /// <param name="connectionString">the string used to open a database</param>
-        public static void Initialize(String provider, String connectionString)
-        {
-            Provider = DbProviderBuilder.NewBuilder(provider, connectionString, "EasyDbHelper").Build();
-        }
-
-        /// <summary>
-        /// Initializes EasyDbHelper.
-        /// </summary>
-        /// <param name="config">the <see cref="LX.EasyDb.Configuration.EasyDbConfiguration"/></param>
-        public static void Initialize(EasyDbConfiguration config)
-        {
-            if (config != null && config.Providers.Count > 0)
-            {
-                IDbProvider masterProvider = null;
-                List<IDbProvider> slaveProviders = new List<IDbProvider>();
-
-                DbProviderElement primaryProviderElement = config.MasterProvider;
-                if (null == primaryProviderElement)
-                    throw new ConfigurationErrorsException("Master provider is not found.");
-                masterProvider = CreateDbProvider(primaryProviderElement);
-                if (masterProvider == null)
-                    throw new ConfigurationErrorsException("Unable to load " + primaryProviderElement.Name);
-
-                if (config.SlaveEnabled)
-                {
-                    foreach (DbProviderElement element in config.Providers)
-                    {
-                        if (element.Equals(primaryProviderElement))
-                            continue;
-                        IDbProvider slave = CreateDbProvider(element);
-                        if (slave == null)
-                            throw new ConfigurationErrorsException("Unable to load " + element.Name);
-                        slaveProviders.Add(slave);
-                    }
-                    Provider = new MasterSlaveDbProvider(masterProvider, slaveProviders);
-                }
-                else
-                {
-                    Provider = masterProvider;
-                }
-            }
         }
 
         private static void LoadConfiguration()
@@ -103,234 +51,160 @@ namespace LX.EasyDb
             }
         }
 
-        private static IDbProvider CreateDbProvider(DbProviderElement config)
+        /// <summary>
+        /// Initializes EasyDbHelper.
+        /// </summary>
+        /// <param name="provider">the provider that implements the data source classes</param>
+        /// <param name="connectionString">the string used to open a database</param>
+        public static void Initialize(String provider, String connectionString)
+        {
+            ConnectionFactory = ConnectionFactoryBuilder.NewBuilder(provider, connectionString, "EasyDbHelper").Build();
+        }
+
+        /// <summary>
+        /// Initializes EasyDbHelper.
+        /// </summary>
+        /// <param name="config">the <see cref="LX.EasyDb.Configuration.EasyDbConfiguration"/></param>
+        public static void Initialize(EasyDbConfiguration config)
+        {
+            if (config != null && config.Providers.Count > 0)
+            {
+                IConnectionFactory masterProvider = null;
+                List<IConnectionFactory> slaveProviders = new List<IConnectionFactory>();
+
+                DbProviderElement primaryProviderElement = config.MasterProvider;
+                if (null == primaryProviderElement)
+                    throw new ConfigurationErrorsException("Master provider is not found.");
+                masterProvider = CreateConnectionFactory(primaryProviderElement);
+                if (masterProvider == null)
+                    throw new ConfigurationErrorsException("Unable to load " + primaryProviderElement.Name);
+
+                // TODO slave mode
+                ConnectionFactory = masterProvider;
+            }
+        }
+
+        private static IConnectionFactory CreateConnectionFactory(DbProviderElement element)
+        {
+            return ConnectionFactoryBuilder.NewBuilder(element.Provider, GetConnectionString(element), element.Name).Build();
+        }
+
+        private static string GetConnectionString(DbProviderElement element)
         {
             String connStr = null;
-            if (String.IsNullOrEmpty(config.ConnectionStringName))
-            { 
-                connStr = config.ConnectionString;
-            }
+            if (String.IsNullOrEmpty(element.ConnectionStringName))
+                connStr = element.ConnectionString;
             else
             {
-                ConnectionStringSettings css = ConfigurationManager.ConnectionStrings[config.ConnectionStringName];
+                ConnectionStringSettings css = ConfigurationManager.ConnectionStrings[element.ConnectionStringName];
                 if (css != null)
                     connStr = css.ConnectionString;
             }
-            return DbProviderBuilder.NewBuilder(config.Provider, connStr, config.Name).Build();
+            return connStr;
         }
 
         /// <summary>
-        /// Gets a new <see cref="System.Data.IDbConnection"/>.
+        /// Gets a opened <see cref="LX.EasyDb.IConnection"/>.
         /// </summary>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <returns><see cref="System.Data.IDbConnection"/></returns>
-        public static IDbConnection GetConnection()
+        public static IConnection OpenConnection()
         {
-            return Provider.GetConnection();
-        }
-
-        /// <summary>
-        /// Creates a new instance of an <see cref="System.Data.IDbDataParameter"/> object.
-        /// </summary>
-        /// <param name="name">the name of the parameter to map</param>
-        /// <param name="value">an Object that is the value of the parameter</param>
-        /// <returns><see cref="System.Data.IDbDataParameter"/></returns>
-        public static IDbDataParameter CreateParameter(String name, Object value)
-        {
-            return Provider.CreateParameter(name, value);
+            return ConnectionFactory.OpenConnection();
         }
 
         /// <summary>
         /// Executes an command statement and returns the number of rows affected.
         /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <returns>the number of rows affected</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static Int32 ExecuteNonQuery(String command)
-        {
-            return ExecuteNonQuery(command, null, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement and returns the number of rows affected.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <returns>the number of rows affected</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static Int32 ExecuteNonQuery(String command, IDbDataParameter[] parameters)
-        {
-            return ExecuteNonQuery(command, parameters, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement and returns the number of rows affected.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
+        /// <param name="sql">the text command to run against the data source</param>
+        /// <param name="param">the object which contains parameters</param>
+        /// <param name="commandTimeout">the wait time before terminating the attempt to execute a command and generating an error</param>
         /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
         /// <returns>the number of rows affected</returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public static Int32 ExecuteNonQuery(String command, IDbDataParameter[] parameters, CommandType commandType)
+        public static Int32 ExecuteNonQuery(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            return Provider.CreateCommand(command, parameters, commandType).ExecuteNonQuery();
+            IConnection conn = OpenConnection();
+            try
+            {
+                return conn.ExecuteNonQuery(sql, param, commandTimeout, commandType);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         /// <summary>
-        /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/> with CloseConnection behavior.
+        /// Executes an command statement and returns the first column of the first row in the resultset returned by the query. Extra columns or rows are ignored.
         /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <returns><see cref="System.Data.IDataReader"/></returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command)
-        {
-            return ExecuteReader(command, null, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/> with CloseConnection behavior.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <returns><see cref="System.Data.IDataReader"/></returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command, IDbDataParameter[] parameters)
-        {
-            return ExecuteReader(command, parameters, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/> with CloseConnection behavior.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
+        /// <param name="sql">the text command to run against the data source</param>
+        /// <param name="param">the object which contains parameters</param>
+        /// <param name="commandTimeout">the wait time before terminating the attempt to execute a command and generating an error</param>
         /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
-        /// <returns><see cref="System.Data.IDataReader"/></returns>
+        /// <returns>the first column of the first row in the resultset</returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command, IDbDataParameter[] parameters, CommandType commandType)
+        public static Object ExecuteScalar(String sql, Object param, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            return ExecuteReader(command, parameters, CommandType.Text, CommandBehavior.CloseConnection);
+            IConnection conn = OpenConnection();
+            try
+            {
+                return conn.ExecuteScalar(sql, param, commandTimeout, commandType);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         /// <summary>
         /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/>.
         /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="behavior">one of the <see cref="System.Data.CommandBehavior"/> values. </param>
+        /// <param name="sql">the text command to run against the data source</param>
+        /// <param name="param">the object which contains parameters</param>
+        /// <param name="commandTimeout">the wait time before terminating the attempt to execute a command and generating an error</param>
+        /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
+        /// <param name="behavior">one of the <see cref="System.Data.CommandBehavior"/> values</param>
         /// <returns><see cref="System.Data.IDataReader"/></returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command, CommandBehavior behavior)
+        public static IDataReader ExecuteReader(String sql, Object param, Int32? commandTimeout = null, CommandType? commandType = null, CommandBehavior? behavior = null)
         {
-            return ExecuteReader(command, null, CommandType.Text, behavior);
+            IConnection conn = OpenConnection();
+            try
+            {
+                return conn.ExecuteReader(sql, param, commandTimeout, commandType);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         /// <summary>
-        /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/>.
+        /// Executes a query and returns enumerable data typed as <see cref="System.Collections.Generic.IDictionary&lt;String, Object&gt;"/>.
         /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <param name="behavior">one of the <see cref="System.Data.CommandBehavior"/> values. </param>
-        /// <returns><see cref="System.Data.IDataReader"/></returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command, IDbDataParameter[] parameters, CommandBehavior behavior)
-        {
-            return ExecuteReader(command, parameters, CommandType.Text, behavior);
-        }
-
-        /// <summary>
-        /// Executes an command statement and builds an <see cref="System.Data.IDataReader"/>.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
+        /// <param name="sql">the text command to run against the data source</param>
+        /// <param name="param">the object which contains parameters</param>
+        /// <param name="buffered">buffer the result or not</param>
+        /// <param name="commandTimeout">the wait time before terminating the attempt to execute a command and generating an error</param>
         /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
-        /// <param name="behavior">one of the <see cref="System.Data.CommandBehavior"/> values. </param>
-        /// <returns><see cref="System.Data.IDataReader"/></returns>
+        /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDataReader ExecuteReader(String command, IDbDataParameter[] parameters, CommandType commandType, CommandBehavior behavior)
+        public static IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            return Provider.CreateCommand(command, parameters, commandType).ExecuteReader(behavior);
-        }
-
-        /// <summary>
-        /// Executes an command statement, and returns the first column of the first row in the resultset returned by the query. Extra columns or rows are ignored.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <returns>the first column of the first row in the resultset</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static Object ExecuteScalar(String command)
-        {
-            return ExecuteScalar(command, null, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement, and returns the first column of the first row in the resultset returned by the query. Extra columns or rows are ignored.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <returns>the first column of the first row in the resultset</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static Object ExecuteScalar(String command, IDbDataParameter[] parameters)
-        {
-            return ExecuteScalar(command, parameters, CommandType.Text);
-        }
-
-        /// <summary>
-        /// Executes an command statement, and returns the first column of the first row in the resultset returned by the query. Extra columns or rows are ignored.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
-        /// <returns>the first column of the first row in the resultset</returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static Object ExecuteScalar(String command, IDbDataParameter[] parameters, CommandType commandType)
-        {
-            return Provider.CreateCommand(command, parameters, commandType).ExecuteScalar();
-        }
-
-        /// <summary>
-        /// Creates a new instance of an <see cref="System.Data.IDbDataAdapter"/> object.
-        /// </summary>
-        /// <returns><see cref="System.Data.IDbDataAdapter"/></returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDbDataAdapter CreateDataAdapter()
-        {
-            return Provider.CreateDataAdapter();
-        }
-
-        /// <summary>
-        /// Creates a new instance of an <see cref="System.Data.IDbDataAdapter"/> object.
-        /// </summary>
-        /// <param name="command">the text command to run against the data source</param>
-        /// <param name="parameters">the collection of parameters</param>
-        /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
-        /// <returns><see cref="System.Data.IDbDataAdapter"/></returns>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public static IDbDataAdapter CreateDataAdapter(String command, IDbDataParameter[] parameters, CommandType commandType)
-        {
-            return Provider.CreateDataAdapter(command, parameters, commandType);
-        }
-
-        /// <summary>
-        /// Starts a database transaction.
-        /// </summary>
-        /// <returns>An <see cref="LX.EasyDb.ITransaction"/> representing the new transaction.</returns>
-        public static ITransaction BeginTransaction()
-        {
-            return Provider.BeginTransaction();
+            IConnection conn = OpenConnection();
+            try
+            {
+                return conn.QueryDirect(sql, param, buffered, commandTimeout, commandType);
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
     }
 }
