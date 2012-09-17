@@ -14,7 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using Dapper;
+using T3dParty.Dapper;
 
 namespace LX.EasyDb
 {

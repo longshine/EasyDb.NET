@@ -18,7 +18,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
-using Dapper;
+using T3dParty.Dapper;
 
 namespace LX.EasyDb
 {
