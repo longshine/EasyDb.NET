@@ -727,7 +727,7 @@ namespace LX.EasyDb
             Assert.IsEqualTo(item.D, true);
         }
 
-        [Mapping.Table(Name = "lx.easydb.samples.supportmysql+userclass")]
+        [Mapping.Table(Name = "sample_users_s")]
         struct UserStruct
         {
             public Int32 id { get; set; }
