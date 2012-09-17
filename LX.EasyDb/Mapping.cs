@@ -225,7 +225,7 @@ namespace LX.EasyDb
                 ColumnAttribute colAttr = ReflectHelper.GetAttribute<ColumnAttribute>(mi);
                 Column column = new Column();
 
-                column.ColumnName = (colAttr == null) ? namingStrategy.GetColumnName(mi.Name) : colAttr.Name;
+                column.ColumnName = (colAttr == null || String.IsNullOrEmpty(colAttr.Name)) ? namingStrategy.GetColumnName(mi.Name) : colAttr.Name;
                 if (colAttr != null && colAttr.Type != DbType.Empty)
                     column.Type = colAttr.Type;
                 AddColumn(column);

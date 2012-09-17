@@ -132,7 +132,7 @@ namespace LX.EasyDb
             }
         }
 
-        public Object ExecuteScalar(String sql, Object param, Int32? commandTimeout = null, CommandType? commandType = null)
+        public Object ExecuteScalar(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null)
         {
             SqlMapper.CacheInfo info = null;
             if (param != null)
@@ -140,31 +140,23 @@ namespace LX.EasyDb
                 SqlMapper.Identity identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
                 info = GetCacheInfo(identity);
             }
-            return ExecuteScalar(Connection, sql, param == null ? null : info.ParamReader, param, Transaction, commandType, commandTimeout);
-        }
 
-        public IDataReader ExecuteReader(String sql, Object param, Int32? commandTimeout = null, CommandType? commandType = null, CommandBehavior? behavior = null)
-        {
-            SqlMapper.CacheInfo info = null;
-            if (param != null)
-            {
-                SqlMapper.Identity identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
-                info = GetCacheInfo(identity);
-            }
-            return ExecuteReader(Connection, sql, param == null ? null : info.ParamReader, param, Transaction, commandType, commandTimeout, behavior);
-        }
-
-        private static Object ExecuteScalar(System.Data.IDbConnection conn, String commandText, Action<IDbCommand, Object> paramReader, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout)
-        {
-            using (IDbCommand cmd = SqlMapper.SetupCommand(conn, transaction, commandText, paramReader, param, commandTimeout, commandType))
+            using (IDbCommand cmd = SqlMapper.SetupCommand(Connection, Transaction, sql, param == null ? null : info.ParamReader, param, commandTimeout, commandType))
             {
                 return cmd.ExecuteScalar();
             }
         }
 
-        private static IDataReader ExecuteReader(System.Data.IDbConnection conn, String commandText, Action<IDbCommand, Object> paramReader, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, CommandBehavior? behavior = null)
+        public IDataReader ExecuteReader(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null, CommandBehavior? behavior = null)
         {
-            using (IDbCommand cmd = SqlMapper.SetupCommand(conn, transaction, commandText, paramReader, param, commandTimeout, commandType))
+            SqlMapper.CacheInfo info = null;
+            if (param != null)
+            {
+                SqlMapper.Identity identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
+                info = GetCacheInfo(identity);
+            }
+
+            using (IDbCommand cmd = SqlMapper.SetupCommand(Connection, Transaction, sql, param == null ? null : info.ParamReader, param, commandTimeout, commandType))
             {
                 return cmd.ExecuteReader(behavior.HasValue ? behavior.Value : CommandBehavior.Default);
             }
@@ -457,7 +449,7 @@ namespace LX.EasyDb
             {
                 // TODO dialect
                 r = Enumerable.FirstOrDefault<Int32>(Query<Int32>("select @@IDENTITY id", null, false, commandTimeout));
-                if (idCol.MemberInfo != null)
+                if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
                 {
                     if (idCol.MemberInfo.Property != null)
                         idCol.MemberInfo.Property.SetValue(item, r, null);
