@@ -23,7 +23,7 @@ namespace LX.EasyDb
         /// <summary>
         /// Initializes with a <see cref="System.Data.Common.DbProviderFactory"/>.
         /// </summary>
-        /// <param name="factory"></param>
+        /// <param name="factory">the <see cref="System.Data.Common.DbProviderFactory"/> that creating instances of a provider's implementation of the data source classes</param>
         public DbProvider(System.Data.Common.DbProviderFactory factory)
         {
             Factory = factory;
