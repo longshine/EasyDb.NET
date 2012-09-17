@@ -51,7 +51,7 @@ namespace LX.EasyDb
     /// <summary>
     /// Represents a factory that builds <see cref="LX.EasyDb.IConnection"/>.
     /// </summary>
-    public class ConnectionFactory : IConnectionFactory, IConnectionFactorySupport
+    class ConnectionFactory : IConnectionFactory, IConnectionFactorySupport
     {
         private Mapping _mapping = new Mapping();
         private System.Data.Common.DbProviderFactory _factory;

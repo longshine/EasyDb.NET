@@ -56,9 +56,10 @@ namespace LX.EasyDb
         /// </summary>
         /// <param name="provider">the provider that implements the data source classes</param>
         /// <param name="connectionString">the string used to open a database</param>
-        public static void Initialize(String provider, String connectionString)
+        /// <param name="dialect">the SQL dialect to apply</param>
+        public static void Initialize(String provider, String connectionString, String dialect)
         {
-            ConnectionFactory = ConnectionFactoryBuilder.NewBuilder(provider, connectionString, "EasyDbHelper").Build();
+            ConnectionFactory = ConnectionFactoryBuilder.NewBuilder(provider, connectionString, "EasyDbHelper", dialect).Build();
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace LX.EasyDb
 
         private static IConnectionFactory CreateConnectionFactory(DbProviderElement element)
         {
-            return ConnectionFactoryBuilder.NewBuilder(element.Provider, GetConnectionString(element), element.Name).Build();
+            return ConnectionFactoryBuilder.NewBuilder(element.Provider, GetConnectionString(element), element.Name, element.Dialect).Build();
         }
 
         private static string GetConnectionString(DbProviderElement element)

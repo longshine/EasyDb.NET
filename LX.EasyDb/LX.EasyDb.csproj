@@ -54,6 +54,7 @@
     <Compile Include="DbTransactionWrapper.cs" />
     <Compile Include="DbType.cs" />
     <Compile Include="Dialect.cs" />
+    <Compile Include="DialectFactory.cs" />
     <Compile Include="DummyProvider.cs" />
     <Compile Include="EasyDbHelper.cs" />
     <Compile Include="DbProvider.cs" />
@@ -80,7 +81,7 @@
     <Compile Include="DbExceptionEventArgs.cs" />
     <Compile Include="DbOperationEventArgs.cs" />
     <Compile Include="SqlMapper.cs" />
-    <Compile Include="StringHelper.cs" />
+    <Compile Include="Helper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />

@@ -57,6 +57,16 @@ namespace LX.EasyDb.Configuration
         }
 
         /// <summary>
+        /// Gets the SQL dialect to apply.
+        /// </summary>
+        [ConfigurationProperty("dialect")]
+        public String Dialect
+        {
+            get { return (String)base["dialect"]; }
+            private set { base["dialect"] = value; }
+        }
+
+        /// <summary>
         /// Gets the string used to open a database.
         /// </summary>
         [ConfigurationProperty("connectionString")]
