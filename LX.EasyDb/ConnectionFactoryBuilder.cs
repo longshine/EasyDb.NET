@@ -31,7 +31,7 @@ namespace LX.EasyDb
         /// <summary>
         /// Builds a provider with given properties.
         /// </summary>
-        /// <returns><see cref="LX.EasyDb.IDbProvider"/></returns>
+        /// <returns><see cref="LX.EasyDb.IConnectionFactory"/></returns>
         public IConnectionFactory Build()
         {
             ConnectionFactory cf = new ConnectionFactory(_factory);
@@ -66,7 +66,7 @@ namespace LX.EasyDb
         /// <param name="connectionString">the connection used to open the database</param>
         /// <param name="name">the name of the provider</param>
         /// <param name="dialect">the SQL dialect to apply</param>
-        /// <returns><see cref="LX.EasyDb.DbProviderBuilder"/></returns>
+        /// <returns><see cref="LX.EasyDb.ConnectionFactoryBuilder"/></returns>
         public static ConnectionFactoryBuilder NewBuilder(String provider, String connectionString, String name, String dialect)
         {
             ConnectionFactoryBuilder builder = new ConnectionFactoryBuilder();
