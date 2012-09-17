@@ -23,7 +23,7 @@ namespace LX.EasyDb
     /// </summary>
     public static class EasyDbHelper
     {
-        private static IConnectionFactory _factory;
+        private static IConnectionFactory _factory = DummyConnectionFactory.Instance;
 
         /// <summary>
         /// Gets the connection factory of EasyDbHelper.
@@ -31,7 +31,7 @@ namespace LX.EasyDb
         public static IConnectionFactory ConnectionFactory
         {
             get { return _factory; }
-            internal set { _factory = value == null ? null : value; }
+            internal set { _factory = value == null ? DummyConnectionFactory.Instance : value; }
         }
 
         static EasyDbHelper()

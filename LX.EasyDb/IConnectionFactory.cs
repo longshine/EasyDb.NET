@@ -128,4 +128,40 @@ namespace LX.EasyDb
             _mapping.SetTable(type, map as Mapping.Table);
         }
     }
+
+    class DummyConnectionFactory : IConnectionFactory
+    {
+        public static readonly IConnectionFactory Instance = new DummyConnectionFactory();
+
+        private DummyConnectionFactory()
+        { }
+
+        public string Name
+        {
+            get { return "Uninitialized"; }
+            set { throw UninitializedException(); }
+        }
+
+        public IConnection OpenConnection()
+        {
+            throw UninitializedException();
+        }
+
+        public Dialect Dialect
+        {
+            get { throw UninitializedException(); }
+            set { throw UninitializedException(); }
+        }
+
+        public string ConnectionString
+        {
+            get { throw UninitializedException(); }
+            set { throw UninitializedException(); }
+        }
+
+        private Exception UninitializedException()
+        {
+            return new InvalidOperationException("Uninitialized provider");
+        }
+    }
 }
