@@ -8,6 +8,16 @@ namespace LX.EasyDb.Samples
     class Samples
     {
         //[Active]
+        public void UsingEasyDbHelper()
+        {
+            EasyDbHelper.ExecuteNonQuery("create table t(i int)");
+            Int32 count = EasyDbHelper.ExecuteNonQuery(@"insert t (i) values(@a)", new[] { new { a = 1 }, new { a = 2 }, new { a = 3 }, new { a = 4 } });
+
+            Console.WriteLine("Rows added: {0}", count);
+
+            EasyDbHelper.ExecuteNonQuery("drop table t");
+        }
+
         public void ExecuteSQL()
         {
             IConnection connection = Program.GetOpenConnection();

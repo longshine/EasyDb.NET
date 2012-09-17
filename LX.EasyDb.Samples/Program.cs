@@ -44,9 +44,9 @@ namespace LX.EasyDb.Samples
         static IConnectionFactory factory;
         static Program()
         {
-            factory = new ConnectionFactory(MySql.Data.MySqlClient.MySqlClientFactory.Instance);
-            factory.Dialect = new MySQLDialect();
-            factory.ConnectionString = "Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;";
+            factory = ConnectionFactoryBuilder.NewBuilder(MySql.Data.MySqlClient.MySqlClientFactory.Instance,
+                "Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;", null,
+                new Dialect.MySQLDialect()).Build();
         }
 
         internal static IConnection GetOpenConnection()
