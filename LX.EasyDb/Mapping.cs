@@ -196,17 +196,23 @@ namespace LX.EasyDb
                 foreach (PropertyInfo pi in _properties)
                 {
                     Column column = CreateColumn(pi, namingStrategy);
-                    if (column.Type == DbType.Empty)
-                        column.Type = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
-                    column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
+                    if (column != null)
+                    {
+                        if (column.Type == DbType.Empty)
+                            column.Type = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
+                        column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
+                    }
                 }
 
                 foreach (FieldInfo fi in _fields)
                 {
                     Column column = CreateColumn(fi, namingStrategy);
-                    if (column.Type == DbType.Empty)
-                        column.Type = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
-                    column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
+                    if (column != null)
+                    {
+                        if (column.Type == DbType.Empty)
+                            column.Type = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
+                        column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
+                    }
                 }
 
                 if (PrimaryKey == null)
@@ -222,6 +228,9 @@ namespace LX.EasyDb
 
             private Column CreateColumn(MemberInfo mi, INamingStrategy namingStrategy)
             {
+                if (ReflectHelper.HasAttribute<IgnoreAttribute>(mi))
+                    return null;
+
                 ColumnAttribute colAttr = ReflectHelper.GetAttribute<ColumnAttribute>(mi);
                 Column column = new Column();
 
@@ -1280,6 +1289,14 @@ namespace LX.EasyDb
                 get { return true; }
                 set { /* throw?  */ }
             }
+        }
+
+        /// <summary>
+        /// Ignores the property.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Property)]
+        public class IgnoreAttribute : Attribute
+        {
         }
 
         #endregion

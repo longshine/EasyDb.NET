@@ -147,7 +147,7 @@ namespace LX.EasyDb
         /// <returns>a <see cref="System.Collections.Generic.IList&lt;T&gt;"/> that contains elements from the input sequence</returns>
         public static IList<T> ToList<T>(IEnumerable<T> source)
         {
-            return new List<T>(source);
+            return source is List<T> ? (List<T>)source : new List<T>(source);
         }
 
         /// <summary>
@@ -157,6 +157,9 @@ namespace LX.EasyDb
         /// <returns>a <see cref="System.Collections.IList"/> that contains elements from the input sequence</returns>
         public static IList ToList(IEnumerable source)
         {
+            if (source is ArrayList)
+                return (ArrayList)source;
+
             ArrayList list = new ArrayList();
             foreach (var item in source)
             {
