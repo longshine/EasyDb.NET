@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using LX.EasyDb.Dialects;
 
 namespace LX.EasyDb
 {
@@ -54,7 +55,7 @@ namespace LX.EasyDb
         {
             factory = ConnectionFactoryBuilder.NewBuilder(MySql.Data.MySqlClient.MySqlClientFactory.Instance,
                 "Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;", null,
-                new Dialect.MySQLDialect()).Build();
+                new MySQLDialect()).Build();
         }
 
         internal static IConnection GetOpenConnection()
