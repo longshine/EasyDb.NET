@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
+using LX.EasyDb.Criterion;
 using T3dParty.Dapper;
 
 namespace LX.EasyDb
@@ -69,9 +70,15 @@ namespace LX.EasyDb
         /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
         /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null);
+        ICriteria<T> CreateCriteria<T>();
     }
 
-    class DbConnectionWrapper : IConnection
+    interface IConnectionSupport
+    {
+        IEnumerable<T> List<T>(Criteria<T> criteria);
+    }
+
+    class DbConnectionWrapper : IConnection, IConnectionSupport
     {
         public DbConnectionWrapper(System.Data.IDbConnection connection)
         {
@@ -342,6 +349,11 @@ namespace LX.EasyDb
 
         #endregion
 
+        public ICriteria<T> CreateCriteria<T>()
+        {
+            return new Criterion.Criteria<T>(this, Factory);
+        }
+
         #region Mapped
 
         private static readonly Type mapType = typeof(IDictionary<String, Object>);
@@ -491,7 +503,8 @@ namespace LX.EasyDb
 
             var args = new DynamicParameters();
 
-            if (table.PrimaryKey.ColumnSpan == 1)
+            Type idType = id.GetType();
+            if (table.PrimaryKey.ColumnSpan == 1 && (idType.IsPrimitive || idType == typeof(String) || idType == typeof(DateTime)))
                 args.Add(Enumerable.First(table.PrimaryKey.Columns).FieldName, id);
             else
                 args.AddDynamicParams(id);
@@ -958,5 +971,10 @@ namespace LX.EasyDb
         }
 
         #endregion
+
+        IEnumerable<T> IConnectionSupport.List<T>(Criteria<T> criteria)
+        {
+            return Enumerable.ToList(this.Query<T>(criteria.ToSqlString(), criteria.Parameters));
+        }
     }
 }
