@@ -35,8 +35,13 @@ namespace LX.EasyDb
                 connection.CreateTable<User2>();
             Int32 id = connection.Insert<User2>(new User2() { username = "phantom" });
 
-            User2 u = Enumerable.Single(connection.Query<User2>("select * from User_1 where id = @id", new { id = id }));
+            User2 u = Enumerable.Single(connection.Query<User2>("select * from User_1 where username = @username", new { username = "phantom" }));
             Assert.IsEqualTo(u.username, "phantom");
+            Assert.IsEqualTo((Int32)u.id, id);
+
+            u = connection.Get<User2>(id);
+            Assert.IsEqualTo(u.username, "phantom");
+            Assert.IsEqualTo((Int32)u.id, id);
 
             connection.DropTable<User2>();
         }
@@ -69,10 +74,26 @@ namespace LX.EasyDb
 
         public void TestCriteria()
         {
-            //ICriteria<User> criteria = connection.CreateCriteria<User>();
-            //criteria.AddSelect(Clauses.Select(Clauses.Mod("id", 2), "id", false))
-            //    .AddSelect(Clauses.Select("username"));
-            //User user = criteria.SingleOrDefault();
+            if (!connection.ExistTable<User>())
+                connection.CreateTable<User>();
+
+            Int32 id = connection.Insert<User>(new User() { username = "user" });
+
+            ICriteria<User> criteria = connection.CreateCriteria<User>();
+            criteria.Add(Clauses.Eq("id", id));
+            User user = criteria.SingleOrDefault();
+            Assert.IsEqualTo(user.username, "user");
+            Assert.IsEqualTo((Int32)user.id, id);
+
+            criteria = connection.CreateCriteria<User>();
+            criteria.AddSelect(Clauses.Select(Clauses.Mod("id", id), "id", false))
+                .AddSelect(Clauses.Select("username"))
+                .Add(Clauses.Eq("username", user.username));
+            user = criteria.SingleOrDefault();
+            Assert.IsEqualTo(user.username, "user");
+            Assert.IsEqualTo((Int32)user.id, 0);
+
+            connection.DropTable<User>();
         }
 
         public void TestMultiThreadConnection()

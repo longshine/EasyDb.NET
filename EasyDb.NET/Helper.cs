@@ -63,11 +63,18 @@ namespace LX.EasyDb
 
         public static void AppendItemsWithSeperator<T>(IEnumerable<T> it, String seperator, AppendItemHandler<T> appendItem, params StringBuilder[] builders)
         {
-            AppendItemsWithSeperator(it, seperator, delegate(T item)
+            Boolean appendSeperator = false;
+            foreach (T item in it)
             {
+                if (appendSeperator)
+                {
+                    foreach (var sb in builders)
+                        sb.Append(seperator);
+                }
+                else
+                    appendSeperator = true;
                 appendItem(item);
-                return true;
-            }, builders);
+            }
         }
 
         public static StringBuilder CreateBuilder()

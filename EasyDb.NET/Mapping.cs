@@ -603,6 +603,40 @@ namespace LX.EasyDb
             }
 
             /// <summary>
+            /// Generates SQL for selecting records in this table.
+            /// </summary>
+            /// <param name="dialect"></param>
+            /// <param name="defaultCatalog">the default catalog name</param>
+            /// <param name="defaultSchema">the default schema name</param>
+            /// <param name="useKeys">a boolean value indicating whether using primary keys as where conditions</param>
+            /// <returns>an SQL string</returns>
+            public String ToSqlSelect(Dialect dialect, String defaultCatalog, String defaultSchema, Boolean useKeys)
+            {
+                StringBuilder sbSql = StringHelper.CreateBuilder()
+                    .Append("SELECT ");
+
+                StringHelper.AppendItemsWithSeperator(Columns, ",", delegate(Mapping.Column column)
+                {
+                    sbSql.Append(column.GetQuotedName(dialect));
+                }, sbSql);
+
+                sbSql.Append(" FROM ")
+                    .Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema));
+
+                if (useKeys && HasPrimaryKey)
+                {
+                    sbSql.Append(" WHERE ");
+                    StringHelper.AppendItemsWithSeperator(PrimaryKey.Columns, " AND ", delegate(Mapping.Column column)
+                    {
+                        sbSql.Append(column.GetQuotedName(dialect)).Append(" = ")
+                            .Append(dialect.ParamPrefix).Append(column.FieldName);
+                    }, sbSql);
+                }
+
+                return sbSql.ToString();
+            }
+
+            /// <summary>
             /// Generates SQL for deleting records in this table.
             /// </summary>
             /// <param name="dialect"></param>

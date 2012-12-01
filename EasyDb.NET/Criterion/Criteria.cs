@@ -126,23 +126,15 @@ namespace LX.EasyDb.Criterion
 
         private String GenerateSelect(String order)
         {
-            StringBuilder sbSql = StringHelper.CreateBuilder()
-                .Append("SELECT ");
+            StringBuilder sbSql = StringHelper.CreateBuilder();
 
             if (_selects == null)
             {
-                Boolean appendSeperator = false;
-                foreach (Mapping.Column col in _table.Columns)
-                {
-                    if (appendSeperator)
-                        sbSql.Append(",");
-                    else
-                        appendSeperator = true;
-                    sbSql.Append(col.GetQuotedName(_factory.Dialect));
-                }
+                sbSql.Append(_table.ToSqlSelect(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema, false));
             }
             else
             {
+                sbSql.Append("SELECT ");
                 Boolean appendSeperator = false;
                 foreach (Select select in _selects)
                 {
@@ -152,10 +144,10 @@ namespace LX.EasyDb.Criterion
                         appendSeperator = true;
                     sbSql.Append(select.ToSqlString(this));
                 }
+                sbSql.Append(" FROM ")
+                    .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
             }
 
-            sbSql.Append(" FROM ")
-                .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
             GenerateFragment(sbSql, "WHERE", _conditions, " AND ");
             if (order != null)
                 sbSql.Append(order);

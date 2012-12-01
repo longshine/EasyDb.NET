@@ -548,15 +548,7 @@ namespace LX.EasyDb
             if (table.PrimaryKey.ColumnSpan > 1 && id.GetType().IsPrimitive)
                 throw new Exception(String.Format("The type {0} has more than one primary-key property and cannot be queried by a single id value.", type == null ? table.Name : type.FullName));
 
-            StringBuilder sbSql = StringHelper.CreateBuilder()
-                .Append("select * from ")
-                .Append(table.GetQualifiedName(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema))
-                .Append(" where ");
-            StringHelper.AppendItemsWithSeperator(table.PrimaryKey.Columns, " and ", delegate(Mapping.Column column)
-            {
-                sbSql.Append(column.GetQuotedName(Factory.Dialect)).Append(" = ")
-                    .Append(Factory.Dialect.ParamPrefix).Append(column.FieldName);
-            }, sbSql);
+            String sql = table.ToSqlSelect(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema, true);
 
             var args = new DynamicParameters();
 
@@ -570,11 +562,11 @@ namespace LX.EasyDb
 
             if (type == null)
             {
-                obj = findStrategy(Query(table.Name, sbSql.ToString(), args, false, commandTimeout));
+                obj = findStrategy(Query(table.Name, sql, args, false, commandTimeout));
             }
             else if (type.IsInterface)
             {
-                var res = findStrategy(Query(table.Name, sbSql.ToString(), args, false, commandTimeout)) as IDictionary<String, Object>;
+                var res = findStrategy(Query(table.Name, sql, args, false, commandTimeout)) as IDictionary<String, Object>;
                 if (res == null)
                     return null;
 
@@ -589,7 +581,7 @@ namespace LX.EasyDb
             }
             else
             {
-                obj = findStrategy(Query(type, sbSql.ToString(), args, false, commandTimeout));
+                obj = findStrategy(Query(type, sql, args, false, commandTimeout));
             }
 
             return obj;
