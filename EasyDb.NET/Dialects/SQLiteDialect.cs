@@ -76,5 +76,12 @@ namespace LX.EasyDb.Dialects
         {
             return "primary key autoincrement";
         }
+
+        /// <summary>
+        /// </summary>
+        public override String SelectIdentityString
+        {
+            get { return "select last_insert_rowid();"; }
+        }
     }
 }

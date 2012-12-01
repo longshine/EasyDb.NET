@@ -180,6 +180,13 @@ namespace LX.EasyDb.Dialects
 
         /// <summary>
         /// </summary>
+        public override String SelectIdentityString
+        {
+            get { return "select @@IDENTITY id"; }
+        }
+
+        /// <summary>
+        /// </summary>
         public override String GetCastTypeName(DbType type)
         {
             if (type == DbType.Int32 || type == DbType.Int16 || type == DbType.Int64)

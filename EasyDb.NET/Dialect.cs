@@ -223,6 +223,11 @@ namespace LX.EasyDb
         public virtual Boolean HasDataTypeInIdentityColumn { get { return true; } }
 
         /// <summary>
+        /// Gets the SQL to select last identity of this dialect.
+        /// </summary>
+        public virtual String SelectIdentityString { get { return null; } }
+
+        /// <summary>
         /// Does this dialect support column-level check constraints?
         /// </summary>
         public virtual Boolean SupportsColumnCheck { get { return true; } }

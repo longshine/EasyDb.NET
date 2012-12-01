@@ -487,19 +487,24 @@ namespace LX.EasyDb
         {
             ExecuteNonQuery(table.ToSqlInsert(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), item, commandTimeout);
 
-            Int32 r = 0;
-            Mapping.Column idCol = table.IdColumn;
-
-            if (idCol != null)
+            if (Factory.Dialect.SelectIdentityString != null)
             {
-                // TODO dialect
-                r = Enumerable.FirstOrDefault<Int32>(Query<Int32>("select @@IDENTITY id", null, false, commandTimeout));
-                if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
+                Int32 r = 0;
+                Mapping.Column idCol = table.IdColumn;
+
+                if (idCol != null)
                 {
-                    if (idCol.MemberInfo.Property != null)
-                        idCol.MemberInfo.Property.SetValue(item, r, null);
-                    else if (idCol.MemberInfo.Field != null)
-                        idCol.MemberInfo.Field.SetValue(item, r);
+                    r = Enumerable.FirstOrDefault<Int32>(Query<Int32>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
+                    if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
+                    {
+                        if (idCol.MemberInfo.Property != null)
+                        {
+                            Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
+                            idCol.MemberInfo.Property.SetValue(item, val, null);
+                        }
+                        else if (idCol.MemberInfo.Field != null)
+                            idCol.MemberInfo.Field.SetValue(item, r);
+                    }
                 }
             }
 
