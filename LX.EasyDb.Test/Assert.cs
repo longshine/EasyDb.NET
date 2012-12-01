@@ -11,6 +11,12 @@ namespace LX.EasyDb
                 throw new ApplicationException(String.Format("{0} should be equals to {1}", obj, other));
         }
 
+        public static void IsNotEqualTo<T>(T obj, T other)
+        {
+            if (Object.Equals(obj, other))
+                throw new ApplicationException(String.Format("{0} should not be equals to {1}", obj, other));
+        }
+
         public static void IsNull(Object obj)
         {
             if (obj != null)
@@ -25,6 +31,10 @@ namespace LX.EasyDb
 
         public static void IsSequenceEqualTo<T>(IEnumerable<T> obj, IEnumerable<T> other)
         {
+            if (obj == null)
+                obj = new T[0];
+            if (other == null)
+                other = new T[0];
             IEnumerator<T> it1 = obj.GetEnumerator();
             IEnumerator<T> it2 = other.GetEnumerator();
             while (it1.MoveNext() && it2.MoveNext())

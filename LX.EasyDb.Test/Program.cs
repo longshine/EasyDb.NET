@@ -56,6 +56,9 @@ namespace LX.EasyDb
             factory = ConnectionFactoryBuilder.NewBuilder(MySql.Data.MySqlClient.MySqlClientFactory.Instance,
                 "Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;", null,
                 new MySQLDialect()).Build();
+            //factory = ConnectionFactoryBuilder.NewBuilder(System.Data.SQLite.SQLiteFactory.Instance,
+            //    "Data Source=test.db;Pooling=true;FailIfMissing=false", null,
+            //    new SQLiteDialect()).Build();
         }
 
         internal static IConnection GetOpenConnection()

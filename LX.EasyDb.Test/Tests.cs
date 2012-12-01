@@ -3,12 +3,126 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using T3dParty.Dapper;
+using LX.EasyDb.Criterion;
 
 namespace LX.EasyDb
 {
     class Tests
     {
         IConnection connection = Program.GetOpenConnection();
+
+        [Mapping.Table(Name = "User")]
+        class User
+        {
+            public UInt64 id { get; set; }
+            public String username { get; set; }
+        }
+
+        //[ActiveTest]
+        public void TestCriteria()
+        {
+            ICriteria<User> criteria = connection.CreateCriteria<User>();
+            criteria.AddSelect(Clauses.Select(Clauses.Mod("id", 2), "id", false))
+                .AddSelect(Clauses.Select("username"));
+            User user = criteria.SingleOrDefault();
+        }
+
+        public void TestMultiThreadConnection()
+        {
+            IConnection conn1 = Program.GetOpenConnection();
+            IConnection conn2 = Program.GetOpenConnection();
+            IConnection conn3 = null;
+
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate(Object state) {
+                conn3 = Program.GetOpenConnection();
+            });
+
+            System.Threading.Thread.Sleep(100);
+            Assert.IsEqualTo(conn1, conn2);
+            Assert.IsNotEqualTo(conn1, conn3);
+        }
+
+        public void TestNestedTransactions()
+        {
+            IConnection conn1 = Program.GetOpenConnection();
+            IConnection conn2 = Program.GetOpenConnection();
+
+            try { conn1.ExecuteNonQuery("drop table TransactionTest;"); }
+            catch { }
+
+            try
+            {
+                conn1.ExecuteNonQuery("create table TransactionTest (ID integer, Value varchar(32));");
+
+                conn1.BeginTransaction();
+
+                try
+                {
+                    //conn2.ExecuteNonQuery("create table TransactionTest (ID integer, Value varchar(32));");
+
+                    conn2.BeginTransaction();
+                    conn2.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
+                    conn2.CommitTransaction();
+
+                    Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 1);
+                }
+                finally
+                {
+                    //conn2.ExecuteNonQuery("drop table TransactionTest;");
+                }
+
+                conn1.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
+                conn1.CommitTransaction();
+
+                Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 2);
+            }
+            finally
+            {
+                conn1.ExecuteNonQuery("drop table TransactionTest;");
+            }
+        }
+
+        public void TestThreadLocalConnection()
+        {
+            IConnection conn1 = Program.GetOpenConnection();
+
+            try { conn1.ExecuteNonQuery("drop table TransactionTest;"); }
+            catch { }
+
+            try
+            {
+                conn1.ExecuteNonQuery("create table TransactionTest (ID integer, Value varchar(32));");
+
+                conn1.BeginTransaction();
+
+                conn1.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
+                conn1.CommitTransaction();
+
+                Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 1);
+            }
+            finally
+            {
+                conn1.ExecuteNonQuery("drop table TransactionTest;");
+            }
+
+            conn1.Close();
+
+            IConnection conn2 = Program.GetOpenConnection();
+            try
+            {
+                conn2.ExecuteNonQuery("create table TransactionTest (ID integer, Value varchar(32));");
+
+                conn2.BeginTransaction();
+                conn2.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
+                conn2.CommitTransaction();
+
+                Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 1);
+            }
+            finally
+            {
+                conn2.ExecuteNonQuery("drop table TransactionTest;");
+            }
+        }
 
         #region Test constructors
 
@@ -142,8 +256,13 @@ namespace LX.EasyDb
 
         public void TestSchemaChanged()
         {
+            try
+            {
+                connection.ExecuteNonQuery("drop table dog");
+            }
+            catch { }
             connection.ExecuteNonQuery("create table dog(Age int, Name nvarchar(32))");
-            connection.ExecuteNonQuery("insert dog values(1, 'Alf')");
+            connection.ExecuteNonQuery("insert into dog values(1, 'Alf')");
 
             var d = Enumerable.Single(connection.Query<Dog>("select * from dog"));
             Assert.IsEqualTo(d.Name, "Alf");
@@ -193,23 +312,33 @@ namespace LX.EasyDb
 
         public void TestExecuteCommand()
         {
+            try
+            {
+                connection.ExecuteNonQuery("drop table t");
+            }
+            catch { }
             connection.ExecuteNonQuery("create table t(i int)");
-            Assert.IsEqualTo(connection.ExecuteNonQuery("insert t select @a a union all select @b", new { a = 1, b = 2 }), 2);
+            Assert.IsEqualTo(connection.ExecuteNonQuery("insert into t select @a a union all select @b", new { a = 1, b = 2 }), 2);
             connection.ExecuteNonQuery("drop table t");
         }
 
         public void TestExecuteCommandWithHybridParameters()
         {
             var p = new DynamicParameters(new { a = 1, b = 2 });
-            p.Add("c", null, System.Data.DbType.Int32, ParameterDirection.Output);
+            p.Add("c", null, System.Data.DbType.Int32, ParameterDirection.Output, null);
             connection.ExecuteNonQuery(@"set @c = @a + @b", p);
             Assert.IsEqualTo(p.Get<int>("@c"), 3);
         }
 
         public void TestExecuteMultipleCommand()
         {
+            try
+            {
+                connection.ExecuteNonQuery("drop table t");
+            }
+            catch { }
             connection.ExecuteNonQuery("create table t(i int)");
-            int tally = connection.ExecuteNonQuery(@"insert t (i) values(@a)", new[] { new { a = 1 }, new { a = 2 }, new { a = 3 }, new { a = 4 } });
+            int tally = connection.ExecuteNonQuery(@"insert into t (i) values(@a)", new[] { new { a = 1 }, new { a = 2 }, new { a = 3 }, new { a = 4 } });
             int sum = Enumerable.FirstOrDefault(connection.Query<int>("select sum(i) from t"));
             connection.ExecuteNonQuery("drop table t");
             Assert.IsEqualTo(tally, 4);
@@ -218,8 +347,13 @@ namespace LX.EasyDb
 
         public void TestExecuteMultipleCommandStrongType()
         {
+            try
+            {
+                connection.ExecuteNonQuery("drop table t");
+            }
+            catch { }
             connection.ExecuteNonQuery("create table t(Name nvarchar(32), Age int)");
-            int tally = connection.ExecuteNonQuery(@"insert t (Name,Age) values(@Name, @Age)", new List<Student> 
+            int tally = connection.ExecuteNonQuery(@"insert into t (Name,Age) values(@Name, @Age)", new List<Student> 
             {
                 new Student{Age = 1, Name = "sam"},
                 new Student{Age = 2, Name = "bob"}
@@ -232,8 +366,13 @@ namespace LX.EasyDb
 
         public void TestExecuteMultipleCommandObjectArray()
         {
+            try
+            {
+                connection.ExecuteNonQuery("drop table t");
+            }
+            catch { }
             connection.ExecuteNonQuery("create table t(i int)");
-            int tally = connection.ExecuteNonQuery(@"insert t (i) values(@a)", new object[] { new { a = 1 }, new { a = 2 }, new { a = 3 }, new { a = 4 } });
+            int tally = connection.ExecuteNonQuery(@"insert into t (i) values(@a)", new object[] { new { a = 1 }, new { a = 2 }, new { a = 3 }, new { a = 4 } });
             int sum = Enumerable.FirstOrDefault(connection.Query<int>("select sum(i) from t"));
             connection.ExecuteNonQuery("drop table t");
             Assert.IsEqualTo(tally, 4);
@@ -243,8 +382,8 @@ namespace LX.EasyDb
         public void TestSupportForDynamicParameters()
         {
             var p = new DynamicParameters();
-            p.Add("name", "bob");
-            p.Add("age", null, System.Data.DbType.Int32, ParameterDirection.Output);
+            p.Add("name", "bob", null, null, null);
+            p.Add("age", null, System.Data.DbType.Int32, ParameterDirection.Output, null);
 
             Assert.IsEqualTo(Enumerable.FirstOrDefault(connection.Query<string>("set @age = 11; select @name;", p)), "bob");
 
@@ -261,8 +400,8 @@ namespace LX.EasyDb
 
         public void TestNullableProperty()
         {
-            var nullable = Enumerable.FirstOrDefault(connection.Query<NullableProperty>("select 3 as notNull, 1 as nullable, 2 as NE2"));
-            Assert.IsEqualTo(nullable.notNull, 3);
+            var nullable = Enumerable.FirstOrDefault(connection.Query<NullableProperty>("select 3 as isNotNull, 1 as nullable, 2 as NE2"));
+            Assert.IsEqualTo(nullable.isNotNull, 3);
             Assert.IsEqualTo(nullable.nullable, 1);
             Assert.IsEqualTo(nullable.NE2, ShortEnum.Two);
         }
@@ -467,6 +606,34 @@ namespace LX.EasyDb
             Assert.IsEqualTo(result[2], 3);
         }
 
+        public void TestAppendingAListAsDictionary()
+        {
+            DynamicParameters p = new DynamicParameters();
+            var list = new int[] { 1, 2, 3 };
+            var args = new Dictionary<string, object>();
+            args.Add("ids", list);
+            p.AddDynamicParams(args);
+
+            var result = Enumerable.ToList(connection.Query<int>("select * from (select 1 A union all select 2 union all select 3) X where A in @ids", p));
+
+            Assert.IsEqualTo(result[0], 1);
+            Assert.IsEqualTo(result[1], 2);
+            Assert.IsEqualTo(result[2], 3);
+        }
+
+        public void TestAppendingAListByName()
+        {
+            DynamicParameters p = new DynamicParameters();
+            var list = new int[] { 1, 2, 3 };
+            p.Add("ids", list, null, null, null);
+
+            var result = Enumerable.ToList(connection.Query<int>("select * from (select 1 A union all select 2 union all select 3) X where A in @ids", p));
+
+            Assert.IsEqualTo(result[0], 1);
+            Assert.IsEqualTo(result[1], 2);
+            Assert.IsEqualTo(result[2], 3);
+        }
+
         #endregion
 
         public void TestStrings()
@@ -599,12 +766,9 @@ namespace LX.EasyDb
             {
                 connection.ExecuteNonQuery("create table TransactionTest (ID integer, Value varchar(32));");
 
-                using (var transaction = connection.BeginTransaction())
-                {
-                    connection.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
-
-                    transaction.Commit();
-                }
+                connection.BeginTransaction();
+                connection.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
+                connection.CommitTransaction();
 
                 Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 1);
             }
@@ -624,7 +788,7 @@ namespace LX.EasyDb
                 {
                     connection.ExecuteNonQuery("insert into TransactionTest (ID, Value) values (1, 'ABC');");
 
-                    transaction.Rollback();
+                    connection.RollbackTransaction();
                 }
 
                 Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 0);
@@ -647,7 +811,7 @@ namespace LX.EasyDb
 
                     transactedConnection.Execute("insert into TransactionTest (ID, Value) values (1, 'ABC');");
 
-                    transaction.Rollback();
+                    connection.RollbackTransaction();
                 }
 
                 Assert.IsEqualTo(Enumerable.Single(connection.Query<int>("select count(*) from TransactionTest;")), 0);
@@ -657,12 +821,12 @@ namespace LX.EasyDb
                 connection.ExecuteNonQuery("drop table TransactionTest;");
             }
         }
-
+        
         public void TestReaderWhenResultsChange()
         {
             try
             {
-                connection.ExecuteNonQuery("create table ResultsChange (X int);create table ResultsChange2 (Y int);insert ResultsChange (X) values(1);insert ResultsChange2 (Y) values(1);");
+                connection.ExecuteNonQuery("create table ResultsChange (X int);create table ResultsChange2 (Y int);insert into ResultsChange (X) values(1);insert into ResultsChange2 (Y) values(1);");
 
                 var obj1 = Enumerable.Single(connection.Query<ResultsChangeType>("select * from ResultsChange"));
                 Assert.IsEqualTo(obj1.X, 1);
@@ -726,6 +890,37 @@ namespace LX.EasyDb
             Assert.IsEqualTo(item.C, 3L);
             Assert.IsEqualTo(item.D, true);
         }
+
+        public void Test_AddDynamicParametersRepeatedShouldWork()
+        {
+            var args = new DynamicParameters();
+            args.AddDynamicParams(new { Foo = 123 });
+            args.AddDynamicParams(new { Foo = 123 });
+            int i = Enumerable.Single(connection.Query<int>("select @Foo", args));
+            Assert.IsEqualTo(i, 123);
+        }
+
+        public class ParameterWithIndexer
+        {
+            public int A { get; set; }
+            public virtual string this[string columnName]
+            {
+                get { return null; }
+                set { }
+            }
+        }
+
+        public void TestParameterWithIndexer()
+        {
+            connection.ExecuteNonQuery(@"create proc #TestProcWithIndexer 
+	@A int
+as 
+begin
+	select @A
+end");
+            var item = Enumerable.Single(connection.Query<int>("#TestProcWithIndexer", new ParameterWithIndexer(), commandType: CommandType.StoredProcedure));
+        }
+
 
         [Mapping.Table(Name = "sample_users_s")]
         struct UserStruct
@@ -856,7 +1051,7 @@ namespace LX.EasyDb
         class NullableProperty
         {
             public Int32? nullable { get; set; }
-            public Int32 notNull { get; set; }
+            public Int32 isNotNull { get; set; }
             public ShortEnum? NE2 { get; set; }
         }
 
