@@ -54,7 +54,6 @@
     <Compile Include="Criterion\Junction.cs" />
     <Compile Include="DbType.cs" />
     <Compile Include="Dialect.cs" />
-    <Compile Include="DialectFactory.cs" />
     <Compile Include="Dialects\Function\CastFunction.cs" />
     <Compile Include="Dialects\Function\ISQLFunction.cs" />
     <Compile Include="Dialects\Function\NoArgSQLFunction.cs" />

@@ -73,7 +73,7 @@ namespace LX.EasyDb
             builder._factory = GetProvider(provider);
             builder._connectionString = connectionString;
             builder._name = name;
-            builder._dialect = DialectFactory.CreateDialect(dialect);
+            builder._dialect = Dialect.CreateDialect(dialect);
             return builder;
         }
 

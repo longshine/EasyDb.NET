@@ -40,6 +40,16 @@ namespace LX.EasyDb
         private Dictionary<String, ISQLFunction> _sqlFunctions = new Dictionary<String, ISQLFunction>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
+        /// Creates a dialect.
+        /// </summary>
+        /// <param name="dialectType">the type of the dialect</param>
+        /// <returns>a instance of <see cref="LX.EasyDb.Dialect"/></returns>
+        public static Dialect CreateDialect(String dialectType)
+        {
+            return String.IsNullOrEmpty(dialectType) ? null : ReflectHelper.CreateInstance<Dialect>(dialectType);
+        }
+
+        /// <summary>
         /// Checks if a string is quoted.
         /// </summary>
         public static Boolean IsQuoted(String s)
