@@ -420,7 +420,7 @@ namespace LX.EasyDb
 
                     // unique constraint
                     if (column.Unique &&
-                        (!column.Nullable || dialect.SupportsNotNullUnique))
+                        (!column.Nullable || dialect.SupportsNullableUnique))
                     {
                         if (dialect.SupportsUnique)
                             sb.Append(" unique");
@@ -1043,7 +1043,7 @@ namespace LX.EasyDb
                 StringBuilder sb = StringHelper.CreateBuilder().Append("unique (");
                 Boolean hadNullableColumn = AppendColumns(sb, dialect);
                 //do not add unique constraint on DB not supporting unique and nullable columns
-                return (!hadNullableColumn || dialect.SupportsNotNullUnique) ?
+                return (!hadNullableColumn || dialect.SupportsNullableUnique) ?
                     sb.Append(")").ToString() :
                     null;
             }
@@ -1060,7 +1060,7 @@ namespace LX.EasyDb
                     .Append("(");
                 Boolean hadNullableColumn = AppendColumns(sb, dialect);
                 //do not add unique constraint on DB not supporting unique and nullable columns
-                return (!hadNullableColumn || dialect.SupportsNotNullUnique) ?
+                return (!hadNullableColumn || dialect.SupportsNullableUnique) ?
                     sb.Append(")").ToString() :
                     null;
             }
@@ -1107,7 +1107,7 @@ namespace LX.EasyDb
 
             private Boolean IsGenerated(Dialect dialect)
             {
-                if (dialect.SupportsNotNullUnique)
+                if (dialect.SupportsNullableUnique)
                     return true;
 
                 foreach (Column column in Columns)

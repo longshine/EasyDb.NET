@@ -175,7 +175,7 @@ namespace LX.EasyDb
         /// <summary>
         /// Does this dialect support the <code>UNIQUE</code> column syntax in nullable columns?
         /// </summary>
-        public virtual Boolean SupportsNotNullUnique { get { return true; } }
+        public virtual Boolean SupportsNullableUnique { get { return true; } }
 
         /// <summary>
         /// Does this dialect support column-level check constraints?
