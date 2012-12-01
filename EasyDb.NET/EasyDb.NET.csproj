@@ -55,8 +55,17 @@
     <Compile Include="DbType.cs" />
     <Compile Include="Dialect.cs" />
     <Compile Include="DialectFactory.cs" />
+    <Compile Include="Dialects\Function\CastFunction.cs" />
+    <Compile Include="Dialects\Function\ISQLFunction.cs" />
+    <Compile Include="Dialects\Function\NoArgSQLFunction.cs" />
+    <Compile Include="Dialects\Function\SQLFunctionTemplate.cs" />
+    <Compile Include="Dialects\Function\StandardAnsiSqlAggregationFunctions.cs" />
+    <Compile Include="Dialects\Function\StandardSQLFunction.cs" />
+    <Compile Include="Dialects\Function\TemplateRenderer.cs" />
+    <Compile Include="Dialects\Function\VarArgsSQLFunction.cs" />
     <Compile Include="Dialects\MySQLDialect.cs" />
     <Compile Include="Dialects\PostgreSQLDialect.cs" />
+    <Compile Include="Dialects\SQLiteDialect.cs" />
     <Compile Include="EasyDbHelper.cs" />
     <Compile Include="Enumerable.cs" />
     <Compile Include="IConnectionFactory.cs" />
@@ -76,6 +85,7 @@
   <ItemGroup>
     <None Include="LICENSE" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
