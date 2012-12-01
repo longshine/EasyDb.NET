@@ -71,7 +71,13 @@ namespace LX.EasyDb
         /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null);
         ICriteria<T> CreateCriteria<T>();
+        /// <summary>
+        /// Commits the transaction.
+        /// </summary>
         void CommitTransaction();
+        /// <summary>
+        /// Rolls back the transaction.
+        /// </summary>
         void RollbackTransaction();
     }
 

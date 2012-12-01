@@ -21,8 +21,17 @@ namespace LX.EasyDb
     /// </summary>
     public abstract class Dialect
     {
+        /// <summary>
+        /// Default length of columns.
+        /// </summary>
         public const Int32 DefaultColumnLength = 255;
+        /// <summary>
+        /// Default precision of columns.
+        /// </summary>
         public const Int32 DefaultColumnPrecision = 19;
+        /// <summary>
+        /// Default scale of columns.
+        /// </summary>
         public const Int32 DefaultColumnScale = 2;
 
         static readonly String QUOTES = "`\"[";
