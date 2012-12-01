@@ -26,7 +26,7 @@ namespace LX.EasyDb
         /// <returns>a instance of <see cref="LX.EasyDb.Dialect"/></returns>
         public static Dialect CreateDialect(String dialectType)
         {
-            return String.IsNullOrEmpty(dialectType) ? new Dialect() : ReflectHelper.CreateInstance<Dialect>(dialectType);
+            return String.IsNullOrEmpty(dialectType) ? null : ReflectHelper.CreateInstance<Dialect>(dialectType);
         }
     }
 }
