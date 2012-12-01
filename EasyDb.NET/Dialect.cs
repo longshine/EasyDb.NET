@@ -12,14 +12,16 @@
 
 using System;
 using System.Collections.Generic;
+using LX.EasyDb.Dialects.Function;
 
 namespace LX.EasyDb
 {
-    public class Dialect
+    public abstract class Dialect
     {
         static readonly String QUOTES = "`\"[";
 
         private TypeNames<DbType> _typeNames = new TypeNames<DbType>();
+        private Dictionary<String, ISQLFunction> _sqlFunctions = new Dictionary<String, ISQLFunction>(StringComparer.OrdinalIgnoreCase);
 
         public static Boolean IsQuoted(String s)
         {
@@ -31,6 +33,42 @@ namespace LX.EasyDb
             Boolean quoted = IsQuoted(input);
             output = quoted ? (input.Substring(1, input.Length - 1)) : input;
             return quoted;
+        }
+
+        public Dialect()
+        {
+            StandardAnsiSqlAggregationFunctions.RegisterFunctions(_sqlFunctions);
+
+            // standard sql92 functions (can be overridden by subclasses)
+            RegisterFunction("substring", new SQLFunctionTemplate(DbType.String, "substring(?1, ?2, ?3)"));
+            RegisterFunction("locate", new SQLFunctionTemplate(DbType.Int32, "locate(?1, ?2, ?3)"));
+            RegisterFunction("trim", new SQLFunctionTemplate(DbType.String, "trim(?1 ?2 ?3 ?4)"));
+            RegisterFunction("length", new StandardSQLFunction("length", DbType.Int32));
+            RegisterFunction("bit_length", new StandardSQLFunction("bit_length", DbType.Int32));
+            RegisterFunction("coalesce", new StandardSQLFunction("coalesce"));
+            RegisterFunction("nullif", new StandardSQLFunction("nullif"));
+            RegisterFunction("abs", new StandardSQLFunction("abs"));
+            RegisterFunction("mod", new StandardSQLFunction("mod", DbType.Int32));
+            RegisterFunction("sqrt", new StandardSQLFunction("sqrt", DbType.Double));
+            RegisterFunction("upper", new StandardSQLFunction("upper"));
+            RegisterFunction("lower", new StandardSQLFunction("lower"));
+            RegisterFunction("cast", new CastFunction());
+            RegisterFunction("extract", new SQLFunctionTemplate(DbType.Int32, "extract(?1 ?2 ?3)"));
+
+            //map second/minute/hour/day/month/year to ANSI extract(), override on subclasses
+            RegisterFunction("second", new SQLFunctionTemplate(DbType.Int32, "extract(second from ?1)"));
+            RegisterFunction("minute", new SQLFunctionTemplate(DbType.Int32, "extract(minute from ?1)"));
+            RegisterFunction("hour", new SQLFunctionTemplate(DbType.Int32, "extract(hour from ?1)"));
+            RegisterFunction("day", new SQLFunctionTemplate(DbType.Int32, "extract(day from ?1)"));
+            RegisterFunction("month", new SQLFunctionTemplate(DbType.Int32, "extract(month from ?1)"));
+            RegisterFunction("year", new SQLFunctionTemplate(DbType.Int32, "extract(year from ?1)"));
+
+            RegisterFunction("str", new SQLFunctionTemplate(DbType.String, "cast(?1 as char)"));
+        }
+
+        public ISQLFunction FindFunction(String functionName)
+        {
+            return _sqlFunctions.ContainsKey(functionName) ? _sqlFunctions[functionName] : null;
         }
 
         public String Quote(String name)
@@ -152,6 +190,11 @@ namespace LX.EasyDb
         protected void RegisterColumnType(DbType type, Int32 capacity, String name)
         {
             _typeNames.Put(type, capacity, name);
+        }
+
+        protected void RegisterFunction(String name, ISQLFunction function)
+        {
+            _sqlFunctions[name] = function;
         }
 
         class TypeNames<T>
