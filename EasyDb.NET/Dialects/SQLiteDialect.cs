@@ -21,7 +21,6 @@ namespace LX.EasyDb.Dialects
     public class SQLiteDialect : Dialect
     {
         /// <summary>
-        /// 
         /// </summary>
         public SQLiteDialect()
         {
@@ -58,11 +57,24 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override Boolean SupportsIfExistsBeforeTableName
         {
             get { return true; }
+        }
+
+        /// <summary>
+        /// </summary>
+        public override Boolean HasPrimaryKeyInIdentityColumn
+        {
+            get { return true; }
+        }
+
+        /// <summary>
+        /// </summary>
+        public override String GetIdentityColumnString()
+        {
+            return "primary key autoincrement";
         }
     }
 }

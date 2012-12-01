@@ -22,7 +22,6 @@ namespace LX.EasyDb.Dialects
     public class MySQLDialect : Dialect
     {
         /// <summary>
-        /// 
         /// </summary>
         public MySQLDialect()
         {
@@ -159,7 +158,6 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override Char OpenQuote
         {
@@ -167,7 +165,6 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override Char CloseQuote
         {
@@ -175,7 +172,13 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
+        /// </summary>
+        public override String GetIdentityColumnString()
+        {
+            return "not null auto_increment";
+        }
+
+        /// <summary>
         /// </summary>
         public override String GetCastTypeName(DbType type)
         {
@@ -190,7 +193,6 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         protected virtual void RegisterVarcharTypes()
         {

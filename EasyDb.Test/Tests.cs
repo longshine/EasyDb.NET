@@ -11,14 +11,42 @@ namespace LX.EasyDb
     {
         IConnection connection = Program.GetOpenConnection();
 
-        [Mapping.Table(Name = "User")]
+        [Mapping.Table(Name = "User_1")]
         class User
         {
+            [Mapping.Column(Type = DbType.Identity)]
+            [Mapping.PrimaryKey]
             public UInt64 id { get; set; }
             public String username { get; set; }
         }
 
-        //[ActiveTest]
+        [ActiveTest]
+        public void TestCreateTable()
+        {
+            Boolean gotException = false;
+
+            try
+            {
+                connection.CreateTable<User>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                gotException = true;
+            }
+            Assert.IsEqualTo(gotException, false);
+
+            try
+            {
+                connection.DropTable<User>();
+            }
+            catch (Exception)
+            {
+                gotException = true;
+            }
+            Assert.IsEqualTo(gotException, false);
+        }
+
         public void TestCriteria()
         {
             //ICriteria<User> criteria = connection.CreateCriteria<User>();

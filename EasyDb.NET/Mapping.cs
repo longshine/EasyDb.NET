@@ -397,10 +397,12 @@ namespace LX.EasyDb
             /// <returns>an SQL string</returns>
             public String ToSqlCreate(Dialect dialect, String defaultCatalog, String defaultSchema)
             {
-                StringBuilder sb = StringHelper.CreateBuilder().Append(HasPrimaryKey ? dialect.CreateTableString : dialect.CreateMultisetTableString)
-                .Append(" ")
-                .Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema))
-                .Append(" (");
+                StringBuilder sb = StringHelper.CreateBuilder()
+                    .Append(HasPrimaryKey ? dialect.CreateTableString : dialect.CreateMultisetTableString)
+                    .Append(" ")
+                    .Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema))
+                    .Append(" (");
+                Boolean hasIdentity = false;
 
                 StringHelper.AppendItemsWithComma(_columns.Values, delegate(Column column)
                 {
@@ -408,15 +410,25 @@ namespace LX.EasyDb
                     sb.Append(column.GetQuotedName(dialect))
                         .Append(" ");
 
-                    sb.Append(column.GetSqlType(dialect));
-
-                    if (column.DefaultValue != null)
-                        sb.Append(" default ").Append(column.DefaultValue);
-
-                    if (column.Nullable)
-                        sb.Append(dialect.NullColumnString);
+                    if (column.Type == DbType.Identity)
+                    {
+                        hasIdentity = true;
+                        if (dialect.HasDataTypeInIdentityColumn)
+                            sb.Append(column.GetSqlType(dialect));
+                        sb.Append(" ").Append(dialect.GetIdentityColumnString());
+                    }
                     else
-                        sb.Append(" not null");
+                    {
+                        sb.Append(column.GetSqlType(dialect));
+
+                        if (column.DefaultValue != null)
+                            sb.Append(" default ").Append(column.DefaultValue);
+
+                        if (column.Nullable)
+                            sb.Append(dialect.NullColumnString);
+                        else
+                            sb.Append(" not null");
+                    }
 
                     // unique constraint
                     if (column.Unique &&
@@ -442,7 +454,7 @@ namespace LX.EasyDb
                         sb.Append(dialect.GetColumnComment(column.Comment));
                 }, sb);
 
-                if (HasPrimaryKey)
+                if (HasPrimaryKey && !(hasIdentity && dialect.HasPrimaryKeyInIdentityColumn))
                     sb.Append(", ")
                         .Append(PrimaryKey.ToSqlConstraintString(dialect));
 

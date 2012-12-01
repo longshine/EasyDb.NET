@@ -213,6 +213,16 @@ namespace LX.EasyDb
         public virtual Boolean SupportsNullableUnique { get { return true; } }
 
         /// <summary>
+        /// Whether this dialect have an primary key clause added to the data type or a completely separate identity data type.
+        /// </summary>
+        public virtual Boolean HasPrimaryKeyInIdentityColumn { get { return false; } }
+
+        /// <summary>
+        /// Whether this dialect have an Identity clause added to the data type or a completely separate identity data type.
+        /// </summary>
+        public virtual Boolean HasDataTypeInIdentityColumn { get { return true; } }
+
+        /// <summary>
         /// Does this dialect support column-level check constraints?
         /// </summary>
         public virtual Boolean SupportsColumnCheck { get { return true; } }
@@ -266,6 +276,14 @@ namespace LX.EasyDb
         /// Gets the name of the SQL function that transforms a string to lowercase.
         /// </summary>
         public virtual String LowercaseFunction { get { return "lower"; } }
+
+        /// <summary>
+        /// Gets the syntax used during DDL to define a column as being an IDENTITY of a particular type.
+        /// </summary>
+        public virtual String GetIdentityColumnString()
+        {
+            throw new MappingException("Dialect does not support identity key generation");
+        }
 
         /// <summary>
         /// Get the name of the database type appropriate for casting operations (via the CAST() SQL function) for the given <see cref="LX.EasyDb.DbType"/>.
