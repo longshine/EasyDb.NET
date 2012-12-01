@@ -1,25 +1,35 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using LX.EasyDb.Dialects;
+using LX.EasyDb.Dialects.Function;
 
 namespace LX.EasyDb.Criterion
 {
-    class Criteria<T> : ICriteria<T>, ICriteriaRender
+    class Criteria : ICriteria, ICriteriaRender
     {
-        private IConnectionSupport _connection;
+        protected IConnectionSupport _connection;
         private IConnectionFactorySupport _factory;
         private List<IExpression> _conditions = new List<IExpression>();
+        private List<Select> _selects;
         private List<Order> _orders = new List<Order>();
         private Dictionary<String, Object> _params = new Dictionary<String, Object>();
         private Mapping.Table _table;
 
-        public Criteria(IConnectionSupport connection, IConnectionFactorySupport factory)
+        public Int32 Offset { get; set; }
+        public Int32 Total { get; set; }
+        public Type Type { get; private set; }
+
+        public Criteria(Type type, IConnectionSupport connection, IConnectionFactorySupport factory)
         {
-            _table = factory.Mapping.FindTable(typeof(T));
+            _table = factory.Mapping.FindTable(type);
             _connection = connection;
             _factory = factory;
             Parameterized = true;
+            Total = -1;
+            Offset = 0;
+            Type = type;
         }
 
         public Boolean Parameterized { get; set; }
@@ -35,13 +45,21 @@ namespace LX.EasyDb.Criterion
             return RegisterParam("p_" + _params.Count, value);
         }
 
-        public ICriteria<T> Add(IExpression condition)
+        public ICriteria Add(IExpression condition)
         {
             _conditions.Add(condition);
             return this;
         }
 
-        public ICriteria<T> AddOrder(Order order)
+        public ICriteria AddSelect(Select select)
+        {
+            if (_selects == null)
+                _selects = new List<Select>();
+            _selects.Add(select);
+            return this;
+        }
+
+        public ICriteria AddOrder(Order order)
         {
             _orders.Add(order);
             return this;
@@ -62,23 +80,103 @@ namespace LX.EasyDb.Criterion
             get { return _params; }
         }
 
-        public IEnumerable<T> List()
+        public IEnumerable List()
         {
+            return List(-1, 0);
+        }
+
+        public IEnumerable List(Int32 total = -1, Int32 offset = 0)
+        {
+            Total = total;
+            Offset = offset;
             return Enumerable.ToList(_connection.List(this));
         }
 
-        public T SingleOrDefault()
+        public Int32 Count()
         {
-            return Enumerable.SingleOrDefault(_connection.List(this));
+            return _connection.Count(this);
+        }
+
+        public Object SingleOrDefault()
+        {
+            return Enumerable.SingleOrDefault(List(1));
         }
 
         public String ToSqlString()
         {
+            String orderby = GenerateOrder();
+            String sql = GenerateSelect(orderby);
+            if (Total >= 0)
+                sql = _factory.Dialect.GetPaging(sql, orderby, Total, Offset);
+#if DEBUG
+            Console.WriteLine(sql);
+#endif
+            return sql;
+        }
+
+        public String ToSqlCountString()
+        {
+            String select = GenerateSelect(null);
             StringBuilder sbSql = StringHelper.CreateBuilder()
-                 .Append("select * from ")
-                  .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
-            GenerateFragment(sbSql, "WHERE", _conditions, " AND ");
+                 .Append("SELECT COUNT(*) FROM (")
+                 .Append(select)
+                 .Append(") t");
             return sbSql.ToString();
+        }
+
+        private String GenerateSelect(String order)
+        {
+            StringBuilder sbSql = StringHelper.CreateBuilder()
+                .Append("SELECT ");
+
+            if (_selects == null)
+            {
+                Boolean appendSeperator = false;
+                foreach (Mapping.Column col in _table.Columns)
+                {
+                    if (appendSeperator)
+                        sbSql.Append(",");
+                    else
+                        appendSeperator = true;
+                    sbSql.Append(col.GetQuotedName(_factory.Dialect));
+                }
+            }
+            else
+            {
+                Boolean appendSeperator = false;
+                foreach (Select select in _selects)
+                {
+                    if (appendSeperator)
+                        sbSql.Append(",");
+                    else
+                        appendSeperator = true;
+                    sbSql.Append(select.ToSqlString(this));
+                }
+            }
+
+            sbSql.Append(" FROM ")
+                .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
+            GenerateFragment(sbSql, "WHERE", _conditions, " AND ");
+            if (order != null)
+                sbSql.Append(order);
+
+            return sbSql.ToString();
+        }
+
+        private String GenerateOrder()
+        {
+            if (_orders.Count > 0)
+            {
+                StringBuilder sb = StringHelper.CreateBuilder()
+                    .Append(" ORDER BY ");
+                StringHelper.AppendItemsWithSeperator(_orders, ",", delegate(Order order)
+                {
+                    sb.Append(order.ToSqlString(this));
+                }, sb);
+                return sb.ToString();
+            }
+            else
+                return null;
         }
 
         private void GenerateFragment(StringBuilder sb, String prefix, IList<IExpression> exps, String sep)
@@ -93,10 +191,10 @@ namespace LX.EasyDb.Criterion
             }
         }
 
-        public string ToSqlString(BetweenExpression between)
+        public String ToSqlString(BetweenExpression between)
         {
             return StringHelper.CreateBuilder()
-                .Append(between.Expression)
+                .Append(between.Expression.ToSqlString(this))
                 .Append(" between ")
                 .Append(between.Lower.ToSqlString(this))
                 .Append(" and ")
@@ -104,7 +202,7 @@ namespace LX.EasyDb.Criterion
                 .ToString();
         }
 
-        public string ToSqlString(LikeExpression like)
+        public String ToSqlString(LikeExpression like)
         {
             StringBuilder sb = StringHelper.CreateBuilder();
 
@@ -123,7 +221,7 @@ namespace LX.EasyDb.Criterion
             return sb.ToString();
         }
 
-        public string ToSqlString(IlikeExpression ilike)
+        public String ToSqlString(IlikeExpression ilike)
         {
             StringBuilder sb = StringHelper.CreateBuilder();
 
@@ -138,7 +236,7 @@ namespace LX.EasyDb.Criterion
             return sb.Append(ilike.MatchMode.ToMatchString(ilike.Value.ToSqlString(this))).ToString();
         }
 
-        public string ToSqlString(InExpression inexp)
+        public String ToSqlString(InExpression inexp)
         {
             StringBuilder sb = StringHelper.CreateBuilder()
                 .Append(inexp.Expression.ToSqlString(this))
@@ -152,7 +250,7 @@ namespace LX.EasyDb.Criterion
             return sb.Append(")").ToString();
         }
 
-        public string ToSqlString(Junction junction)
+        public String ToSqlString(Junction junction)
         {
             if (0 == junction.Expressions.Count)
                 return "1=1";
@@ -168,7 +266,7 @@ namespace LX.EasyDb.Criterion
             return sb.Append(')').ToString();
         }
 
-        public string ToSqlString(LogicalExpression logical)
+        public String ToSqlString(LogicalExpression logical)
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
@@ -181,7 +279,7 @@ namespace LX.EasyDb.Criterion
                 .ToString();
         }
 
-        public string ToSqlString(NotExpression not)
+        public String ToSqlString(NotExpression not)
         {
             if (_factory.Dialect is MySQLDialect)
                 return "not (" + not.Expression.ToSqlString(this) + ')';
@@ -189,12 +287,12 @@ namespace LX.EasyDb.Criterion
                 return "not " + not.Expression.ToSqlString(this);
         }
 
-        public string ToSqlString(NotNullExpression notNull)
+        public String ToSqlString(NotNullExpression notNull)
         {
             return notNull.Expression.ToSqlString(this) + " is not null";
         }
 
-        public string ToSqlString(NullExpression nullexp)
+        public String ToSqlString(NullExpression nullexp)
         {
             return nullexp.Expression.ToSqlString(this) + " is null";
         }
@@ -225,26 +323,44 @@ namespace LX.EasyDb.Criterion
         {
             return StringHelper.CreateBuilder()
                 .Append(order.Expression.ToSqlString(this))
-                .Append((order.Ascending ? " asc" : " desc"))
+                .Append((order.Ascending ? " ASC" : " DESC"))
                 .ToString();
         }
 
-        public string ToSqlString(From.Table table)
+        public String ToSqlString(From.Table table)
         {
             throw new NotImplementedException();
         }
 
-        public string ToSqlString(Function function)
+        public String ToSqlString(Function function)
         {
-            throw new NotImplementedException();
+            ISQLFunction func = _factory.Dialect.FindFunction(function.FunctionName);
+            if (func == null)
+                // TODO throw an exception
+                throw new Exception("Function not found");
+            List<Object> list = new List<Object>();
+            foreach (IExpression exp in function.Arguments)
+            {
+                list.Add(exp.ToSqlString(this));
+            }
+            return func.Render(list, _factory as IConnectionFactory);
         }
 
-        public string ToSqlString(Select select)
+        public String ToSqlString(Select select)
         {
-            throw new NotImplementedException();
+            StringBuilder sb = StringHelper.CreateBuilder();
+            if (select.Distinct)
+                sb.Append("DISTINCT ");
+            sb.Append(select.Expression.ToSqlString(this));
+            if (!String.IsNullOrEmpty(select.Alias))
+            {
+                sb.Append(" AS ");
+                sb.Append(_factory.Dialect.Quote(select.Alias));
+            }
+            return sb.ToString();
         }
 
-        public string ToSqlString(SimpleExpression simple)
+        public String ToSqlString(SimpleExpression simple)
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
@@ -257,7 +373,7 @@ namespace LX.EasyDb.Criterion
                 .ToString();
         }
 
-        public string ToSqlString(PropertyExpression property)
+        public String ToSqlString(PropertyExpression property)
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
@@ -268,6 +384,65 @@ namespace LX.EasyDb.Criterion
                 .Append(property.OtherPropertyName.ToSqlString(this))
                 .Append(')')
                 .ToString();
+        }
+
+        public String ToSqlString(AggregateProjection aggregateProjection)
+        {
+            ISQLFunction func = _factory.Dialect.FindFunction(aggregateProjection.FunctionName);
+            if (func == null)
+                // TODO throw an exception
+                throw new Exception("Function not found");
+            return func.Render(BuildFunctionParameterList(aggregateProjection.FiledName), _factory as IConnectionFactory);
+        }
+
+        private static IList<Object> BuildFunctionParameterList(String column)
+        {
+            List<Object> list = new List<Object>();
+            list.Add(column);
+            return list;
+        }
+    }
+
+    class Criteria<T> : Criteria, ICriteria<T>, ICriteriaRender
+    {
+        public Criteria(IConnectionSupport connection, IConnectionFactorySupport factory)
+            : base(typeof(T), connection, factory)
+        {
+        }
+
+        public new ICriteria<T> Add(IExpression condition)
+        {
+            base.Add(condition);
+            return this;
+        }
+
+        public new ICriteria<T> AddSelect(Select select)
+        {
+            base.AddSelect(select);
+            return this;
+        }
+
+        public new ICriteria<T> AddOrder(Order order)
+        {
+            base.AddOrder(order);
+            return this;
+        }
+
+        public new IEnumerable<T> List()
+        {
+            return List(-1, 0);
+        }
+
+        public new IEnumerable<T> List(Int32 total = -1, Int32 offset = 0)
+        {
+            Total = total;
+            Offset = offset;
+            return Enumerable.ToList(_connection.List(this));
+        }
+
+        public new T SingleOrDefault()
+        {
+            return Enumerable.SingleOrDefault(List(1));
         }
     }
 
@@ -291,5 +466,6 @@ namespace LX.EasyDb.Criterion
         String ToSqlString(Select select);
         String ToSqlString(SimpleExpression simpleExpression);
         String ToSqlString(PropertyExpression propertyExpression);
+        String ToSqlString(AggregateProjection aggregateProjection);
     }
 }

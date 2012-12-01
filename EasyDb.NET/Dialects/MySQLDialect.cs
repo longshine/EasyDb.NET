@@ -11,7 +11,7 @@
 //
 
 using System;
-using System.Collections.Generic;
+using System.Text;
 using LX.EasyDb.Dialects.Function;
 
 namespace LX.EasyDb.Dialects
@@ -197,6 +197,22 @@ namespace LX.EasyDb.Dialects
                 return "binary";
             else
                 return base.GetCastTypeName(type);
+        }
+
+        /// <summary>
+        /// </summary>
+        public override String GetPaging(String sql, String order, Int32 total, Int32 offset)
+        {
+            StringBuilder sb = StringHelper.CreateBuilder()
+                .Append(sql)
+                .Append(" LIMIT ")
+                .Append(total);
+            if (offset > 0)
+            {
+                sb.Append(" OFFSET ");
+                sb.Append(offset);
+            }
+            return sb.ToString();
         }
 
         /// <summary>

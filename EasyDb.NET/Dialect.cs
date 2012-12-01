@@ -339,6 +339,11 @@ namespace LX.EasyDb
         }
 
         /// <summary>
+        /// Gets paging SQL.
+        /// </summary>
+        public abstract String GetPaging(String sql, String order, Int32 total, Int32 offset);
+
+        /// <summary>
         /// Registers a type name for the given type.
         /// </summary>
         /// <param name="type">the <see cref="LX.EasyDb.DbType"/></param>

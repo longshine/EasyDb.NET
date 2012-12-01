@@ -11,6 +11,7 @@
 //
 
 using System;
+using System.Text;
 using LX.EasyDb.Dialects.Function;
 
 namespace LX.EasyDb.Dialects
@@ -21,7 +22,6 @@ namespace LX.EasyDb.Dialects
     public class PostgreSQLDialect : Dialect
     {
         /// <summary>
-        /// 
         /// </summary>
         public PostgreSQLDialect()
         {
@@ -115,7 +115,6 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override Char OpenQuote
         {
@@ -123,11 +122,33 @@ namespace LX.EasyDb.Dialects
         }
 
         /// <summary>
-        /// 
         /// </summary>
         public override Char CloseQuote
         {
             get { return '`'; }
+        }
+
+        /// <summary>
+        /// </summary>
+        public override string SelectIdentityString
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        /// <summary>
+        /// </summary>
+        public override String GetPaging(String sql, String order, Int32 total, Int32 offset)
+        {
+            StringBuilder sb = StringHelper.CreateBuilder()
+                .Append(sql)
+                .Append(" LIMIT ")
+                .Append(total);
+            if (offset > 0)
+            {
+                sb.Append(" OFFSET ");
+                sb.Append(offset);
+            }
+            return sb.ToString();
         }
     }
 }
