@@ -21,10 +21,10 @@ namespace LX.EasyDb
         //[ActiveTest]
         public void TestCriteria()
         {
-            ICriteria<User> criteria = connection.CreateCriteria<User>();
-            criteria.AddSelect(Clauses.Select(Clauses.Mod("id", 2), "id", false))
-                .AddSelect(Clauses.Select("username"));
-            User user = criteria.SingleOrDefault();
+            //ICriteria<User> criteria = connection.CreateCriteria<User>();
+            //criteria.AddSelect(Clauses.Select(Clauses.Mod("id", 2), "id", false))
+            //    .AddSelect(Clauses.Select("username"));
+            //User user = criteria.SingleOrDefault();
         }
 
         public void TestMultiThreadConnection()

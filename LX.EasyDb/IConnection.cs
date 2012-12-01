@@ -71,6 +71,8 @@ namespace LX.EasyDb
         /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null);
         ICriteria<T> CreateCriteria<T>();
+        void CommitTransaction();
+        void RollbackTransaction();
     }
 
     interface IConnectionSupport
@@ -945,6 +947,8 @@ namespace LX.EasyDb
 
         #region System.Data.IDbConnection
 
+        private Int32 _transactionCounter = 0;
+
         public IDbTransaction BeginTransaction(IsolationLevel il)
         {
             Transaction = Connection.BeginTransaction(il);
@@ -953,8 +957,29 @@ namespace LX.EasyDb
 
         public IDbTransaction BeginTransaction()
         {
-            Transaction = Connection.BeginTransaction();
+            if (_transactionCounter++ == 0)
+                Transaction = Connection.BeginTransaction();
             return Transaction;
+        }
+
+        public void CommitTransaction()
+        {
+            if (_transactionCounter > 0 && --_transactionCounter == 0)
+            {
+                Transaction.Commit();
+                Transaction.Dispose();
+                Transaction = null;
+            }
+        }
+
+        public void RollbackTransaction()
+        {
+            if (_transactionCounter > 0 && --_transactionCounter == 0)
+            {
+                Transaction.Rollback();
+                Transaction.Dispose();
+                Transaction = null;
+            }
         }
 
         public void ChangeDatabase(String databaseName)
