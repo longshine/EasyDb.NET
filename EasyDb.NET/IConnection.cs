@@ -96,15 +96,7 @@ namespace LX.EasyDb
         void RollbackTransaction();
     }
 
-    interface IConnectionSupport
-    {
-        IEnumerable<T> List<T>(Criteria<T> criteria);
-        Int32 Count<T>(Criteria<T> criteria);
-        IEnumerable List(Criteria criteria);
-        Int32 Count(Criteria criteria);
-    }
-
-    class DbConnectionWrapper : IConnection, IConnectionSupport
+    class DbConnectionWrapper : IConnection
     {
         public DbConnectionWrapper(System.Data.IDbConnection connection)
         {
@@ -1051,25 +1043,5 @@ namespace LX.EasyDb
         }
 
         #endregion
-
-        IEnumerable<T> IConnectionSupport.List<T>(Criteria<T> criteria)
-        {
-            return Enumerable.ToList(this.Query<T>(criteria.ToSqlString(), criteria.Parameters));
-        }
-
-        Int32 IConnectionSupport.Count<T>(Criteria<T> criteria)
-        {
-            return Enumerable.Single<Int32>(this.Query<Int32>(criteria.ToSqlCountString(), criteria.Parameters));
-        }
-
-        IEnumerable IConnectionSupport.List(Criteria criteria)
-        {
-            return Enumerable.ToList(this.Query(criteria.Type, criteria.ToSqlString(), criteria.Parameters));
-        }
-
-        int IConnectionSupport.Count(Criteria criteria)
-        {
-            return Enumerable.Single<Int32>(this.Query<Int32>(criteria.ToSqlCountString(), criteria.Parameters));
-        }
     }
 }

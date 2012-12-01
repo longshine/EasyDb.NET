@@ -9,7 +9,7 @@ namespace LX.EasyDb.Criterion
 {
     class Criteria : ICriteria, ICriteriaRender
     {
-        protected IConnectionSupport _connection;
+        protected IConnection _connection;
         private IConnectionFactorySupport _factory;
         private List<IExpression> _conditions = new List<IExpression>();
         private List<Select> _selects;
@@ -21,7 +21,7 @@ namespace LX.EasyDb.Criterion
         public Int32 Total { get; set; }
         public Type Type { get; private set; }
 
-        public Criteria(Type type, IConnectionSupport connection, IConnectionFactorySupport factory)
+        public Criteria(Type type, IConnection connection, IConnectionFactorySupport factory)
         {
             _table = factory.Mapping.FindTable(type);
             _connection = connection;
@@ -89,12 +89,12 @@ namespace LX.EasyDb.Criterion
         {
             Total = total;
             Offset = offset;
-            return Enumerable.ToList(_connection.List(this));
+            return Enumerable.ToList(_connection.Query(Type, ToSqlString(), Parameters));
         }
 
         public Int32 Count()
         {
-            return _connection.Count(this);
+            return Enumerable.Single<Int32>(_connection.Query<Int32>(ToSqlCountString(), Parameters));
         }
 
         public Object SingleOrDefault()
@@ -397,7 +397,7 @@ namespace LX.EasyDb.Criterion
 
     class Criteria<T> : Criteria, ICriteria<T>, ICriteriaRender
     {
-        public Criteria(IConnectionSupport connection, IConnectionFactorySupport factory)
+        public Criteria(IConnection connection, IConnectionFactorySupport factory)
             : base(typeof(T), connection, factory)
         {
         }
@@ -429,7 +429,7 @@ namespace LX.EasyDb.Criterion
         {
             Total = total;
             Offset = offset;
-            return Enumerable.ToList(_connection.List(this));
+            return Enumerable.ToList(_connection.Query<T>(ToSqlString(), Parameters));
         }
 
         public new T SingleOrDefault()
