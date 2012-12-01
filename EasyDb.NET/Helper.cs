@@ -144,7 +144,7 @@ namespace LX.EasyDb
                 {
                     if (!String.Equals(ctorParameters[i].Name, names[i], StringComparison.OrdinalIgnoreCase))
                         break;
-                    if (types[i] == typeof(Byte[]) && ctorParameters[i].ParameterType.FullName == T3dParty.Dapper.SqlMapper.LinqBinary)
+                    if (types[i] == typeof(Byte[]) && ctorParameters[i].ParameterType.FullName == Dapper.SqlMapper.LinqBinary)
                         continue;
                     if (ctorParameters[i].ParameterType == types[i])
                         continue;

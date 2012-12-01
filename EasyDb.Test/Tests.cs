@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using T3dParty.Dapper;
+using Dapper;
 using LX.EasyDb.Criterion;
 
 namespace LX.EasyDb

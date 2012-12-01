@@ -41,7 +41,7 @@ namespace LX.EasyDb
     /// <summary>
     /// Provides supports for internal use.
     /// </summary>
-    interface IConnectionFactorySupport : T3dParty.Dapper.SqlMapper.ITypeMapRegistry
+    interface IConnectionFactorySupport : Dapper.SqlMapper.ITypeMapRegistry
     {
         Mapping Mapping { get; }
         Dialect Dialect { get; }
@@ -113,7 +113,7 @@ namespace LX.EasyDb
         /// Gets type-map for the given type, or creates one if not found.
         /// </summary>
         /// <returns>the type map implementation</returns>
-        public T3dParty.Dapper.SqlMapper.ITypeMap GetTypeMap(Type type)
+        public Dapper.SqlMapper.ITypeMap GetTypeMap(Type type)
         {
             return _mapping.FindTable(type);
         }
@@ -123,7 +123,7 @@ namespace LX.EasyDb
         /// </summary>
         /// <param name="type">the <see cref="System.Type"/> to map</param>
         /// <param name="map">the mapping rules impementation, or null to remove custom map</param>
-        public void SetTypeMap(Type type, T3dParty.Dapper.SqlMapper.ITypeMap map)
+        public void SetTypeMap(Type type, Dapper.SqlMapper.ITypeMap map)
         {
             _mapping.SetTable(type, map as Mapping.Table);
         }

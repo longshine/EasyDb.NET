@@ -19,7 +19,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using LX.EasyDb.Criterion;
-using T3dParty.Dapper;
+using Dapper;
 
 namespace LX.EasyDb
 {
@@ -487,24 +487,20 @@ namespace LX.EasyDb
         {
             ExecuteNonQuery(table.ToSqlInsert(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), item, commandTimeout);
 
-            if (Factory.Dialect.SelectIdentityString != null)
+            Int32 r = 0;
+            Mapping.Column idCol = table.IdColumn;
+            if (idCol != null && Factory.Dialect.SelectIdentityString != null)
             {
-                Int32 r = 0;
-                Mapping.Column idCol = table.IdColumn;
-
-                if (idCol != null)
+                r = Enumerable.FirstOrDefault<Int32>(Query<Int32>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
+                if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
                 {
-                    r = Enumerable.FirstOrDefault<Int32>(Query<Int32>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
-                    if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
+                    if (idCol.MemberInfo.Property != null)
                     {
-                        if (idCol.MemberInfo.Property != null)
-                        {
-                            Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
-                            idCol.MemberInfo.Property.SetValue(item, val, null);
-                        }
-                        else if (idCol.MemberInfo.Field != null)
-                            idCol.MemberInfo.Field.SetValue(item, r);
+                        Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
+                        idCol.MemberInfo.Property.SetValue(item, val, null);
                     }
+                    else if (idCol.MemberInfo.Field != null)
+                        idCol.MemberInfo.Field.SetValue(item, r);
                 }
             }
 

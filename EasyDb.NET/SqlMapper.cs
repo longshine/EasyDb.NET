@@ -9,6 +9,7 @@
 #if NET20
 #define CSHARP30
 #endif
+//#define DAPPER_MAKE_PRIVATE
 
 using System;
 using System.Collections;
@@ -24,7 +25,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace T3dParty.Dapper
+namespace Dapper
 {
 #if NET20
     /// <summary>

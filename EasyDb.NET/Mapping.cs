@@ -14,7 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using T3dParty.Dapper;
+using Dapper;
 
 namespace LX.EasyDb
 {
@@ -165,7 +165,7 @@ namespace LX.EasyDb
         /// <summary>
         /// A relational table.
         /// </summary>
-        public class Table : IRelationalModel, SqlMapper.ITypeMap
+        public class Table : IRelationalModel, Dapper.SqlMapper.ITypeMap
         {
             private String _name;
             private String _schema;
@@ -626,7 +626,7 @@ namespace LX.EasyDb
             /// </summary>
             /// <param name="columnName">the column name</param>
             /// <returns>the mapping implementation</returns>
-            public SqlMapper.IMemberMap GetMember(String columnName)
+            SqlMapper.IMemberMap SqlMapper.ITypeMap.GetMember(String columnName)
             {
                 Column column = FindColumn(columnName);
                 return column == null ? null : column.MemberInfo;
@@ -649,7 +649,7 @@ namespace LX.EasyDb
             /// <param name="constructor">the constructor to resolve</param>
             /// <param name="columnName">the column name</param>
             /// <returns>the mapping implementation</returns>
-            public SqlMapper.IMemberMap GetConstructorParameter(ConstructorInfo constructor, String columnName)
+            SqlMapper.IMemberMap SqlMapper.ITypeMap.GetConstructorParameter(ConstructorInfo constructor, String columnName)
             {
                 var parameters = constructor.GetParameters();
                 
@@ -722,7 +722,7 @@ namespace LX.EasyDb
             /// <summary>
             /// Gets or sets the member info associated with this column.
             /// </summary>
-            public SqlMapper.IMemberMap MemberInfo { get; set; }
+            internal SqlMapper.IMemberMap MemberInfo { get; set; }
 
             /// <summary>
             /// Gets or sets the name of the mapped field.
