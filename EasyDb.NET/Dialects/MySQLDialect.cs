@@ -156,51 +156,6 @@ namespace LX.EasyDb.Dialects
             RegisterFunction("sha", new StandardSQLFunction("sha", DbType.String));
 
             RegisterFunction("concat", new StandardSQLFunction("concat", DbType.String));
-
-            RegisterFunction("cast", new CastFunction());
-        }
-
-        private class CastFunction : ISQLFunction
-        {
-            public DbType GetReturnType(DbType firstArgumentType)
-            {
-                return firstArgumentType;
-            }
-
-            public String Render(IList<Object> args, IConnectionFactory factory)
-            {
-                if (args.Count != 2)
-                    throw new Exception("cast() requires two arguments");
-
-                return "cast(" + args[0] + " as " + ResolveType((String)args[1]) + ')';
-            }
-
-            private static String ResolveType(String type)
-            {
-                if (String.Equals(type, "int", StringComparison.OrdinalIgnoreCase)
-                    || String.Equals(type, "integer", StringComparison.OrdinalIgnoreCase))
-                    return "SIGNED";
-                else if (String.Equals(type, "uint", StringComparison.OrdinalIgnoreCase)
-                    || String.Equals(type, "unsigned", StringComparison.OrdinalIgnoreCase))
-                    return "UNSIGNED";
-                else if (String.Equals(type, "float", StringComparison.OrdinalIgnoreCase)
-                    || String.Equals(type, "double", StringComparison.OrdinalIgnoreCase))
-                    return "DECIMAL";
-                else
-                    throw new Exception("Unknown type " + type);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void RegisterVarcharTypes()
-        {
-            RegisterColumnType(DbType.String, "longtext");
-            //RegisterColumnType( DbType.String, 16777215, "mediumtext" );
-            //RegisterColumnType( DbType.String, 65535, "text" );
-            RegisterColumnType(DbType.String, 255, "varchar($l)");
-            //RegisterColumnType(Types.LONGVARCHAR, "longtext");
         }
 
         /// <summary>
@@ -217,6 +172,33 @@ namespace LX.EasyDb.Dialects
         public override Char CloseQuote
         {
             get { return '`'; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override String GetCastTypeName(DbType type)
+        {
+            if (type == DbType.Int32 || type == DbType.Int16 || type == DbType.Int64)
+                return "signed";
+            else if (type == DbType.UInt32 || type == DbType.UInt16 || type == DbType.UInt64)
+                return "unsigned";
+            else if (type == DbType.Binary)
+                return "binary";
+            else
+                return base.GetCastTypeName(type);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void RegisterVarcharTypes()
+        {
+            RegisterColumnType(DbType.String, "longtext");
+            //RegisterColumnType( DbType.String, 16777215, "mediumtext" );
+            //RegisterColumnType( DbType.String, 65535, "text" );
+            RegisterColumnType(DbType.String, 255, "varchar($l)");
+            //RegisterColumnType(Types.LONGVARCHAR, "longtext");
         }
     }
 }

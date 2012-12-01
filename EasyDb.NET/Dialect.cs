@@ -159,6 +159,32 @@ namespace LX.EasyDb
         }
 
         /// <summary>
+        /// Get the name of the database type appropriate for casting operations (via the CAST() SQL function) for the given type.
+        /// </summary>
+        public String GetCastTypeName(String type)
+        {
+            DbType t = DbType.Empty;
+
+            if (type == null)
+                t = DbType.Empty;
+            else if (String.Equals(type, "int", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(type, "integer", StringComparison.OrdinalIgnoreCase))
+                t = DbType.Int32;
+            else if (String.Equals(type, "uint", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(type, "unsigned", StringComparison.OrdinalIgnoreCase))
+                t = DbType.UInt32;
+            else if (String.Equals(type, "float", StringComparison.OrdinalIgnoreCase)
+                || String.Equals(type, "double", StringComparison.OrdinalIgnoreCase))
+                t = DbType.Double;
+            else if (String.Equals(type, "binary", StringComparison.OrdinalIgnoreCase))
+                t = DbType.Binary;
+            else if (String.Equals(type, "string", StringComparison.OrdinalIgnoreCase))
+                t = DbType.String;
+
+            return GetCastTypeName(t);
+        }
+
+        /// <summary>
         /// Do we need to qualify index names with the schema name?
         /// </summary>
         public virtual Boolean QualifyIndexName

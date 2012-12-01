@@ -19,7 +19,7 @@ namespace LX.EasyDb.Dialects.Function
     {
         public DbType GetReturnType(DbType firstArgumentType)
         {
-            throw new NotImplementedException();
+            return firstArgumentType;
         }
 
         public String Render(IList<Object> args, IConnectionFactory factory)
@@ -27,11 +27,7 @@ namespace LX.EasyDb.Dialects.Function
             if (args.Count != 2)
                 throw new Exception("cast() requires two arguments");
 
-            String type = (String)args[1];
-            String sqlType = type;
-            // TODO dialect the type
-
-            return "cast(" + args[0] + " as " + sqlType + ')';
+            return "cast(" + args[0] + " as " + factory.Dialect.GetCastTypeName((String)args[1]) + ')';
         }
     }
 }
