@@ -167,5 +167,25 @@ namespace LX.EasyDb
             }
             return list;
         }
+
+        public static IEnumerable<TResult> Cast<TResult>(IEnumerable source)
+        {
+            List<TResult> list = new List<TResult>();
+            foreach (var item in source)
+            {
+                list.Add((TResult)item);
+            }
+            list.TrimExcess();
+            return list;
+        }
+
+        public static Int32 Count(IEnumerable source)
+        {
+            Int32 count = 0;
+            IEnumerator it = source.GetEnumerator();
+            while (it.MoveNext())
+                count++;
+            return count;
+        }
     }
 }
