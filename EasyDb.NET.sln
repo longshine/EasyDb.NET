@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LX.EasyDb", "LX.EasyDb\LX.EasyDb.csproj", "{AF8D5710-4BA2-4602-9E9E-09B391612077}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyDb.NET", "EasyDb.NET\EasyDb.NET.csproj", "{AF8D5710-4BA2-4602-9E9E-09B391612077}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LX.EasyDb.Samples", "LX.EasyDb.Samples\LX.EasyDb.Samples.csproj", "{2387F7A6-A933-49C4-B85F-3127CA825257}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyDb.Samples", "EasyDb.Samples\EasyDb.Samples.csproj", "{2387F7A6-A933-49C4-B85F-3127CA825257}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LX.EasyDb.Test", "LX.EasyDb.Test\LX.EasyDb.Test.csproj", "{72C897D1-4AC3-41F4-86BB-F9B4224A546D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyDb.Test", "EasyDb.Test\EasyDb.Test.csproj", "{72C897D1-4AC3-41F4-86BB-F9B4224A546D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

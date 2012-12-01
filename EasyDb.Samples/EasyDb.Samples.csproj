@@ -73,7 +73,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LX.EasyDb\LX.EasyDb.csproj">
+    <ProjectReference Include="..\EasyDb.NET\EasyDb.NET.csproj">
       <Project>{AF8D5710-4BA2-4602-9E9E-09B391612077}</Project>
       <Name>LX.EasyDb</Name>
     </ProjectReference>
