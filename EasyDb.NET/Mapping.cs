@@ -98,6 +98,19 @@ namespace LX.EasyDb
             }
         }
 
+        /// <summary>
+        /// Registers mapping of a real type with metadata defined in another phantom type.
+        /// <remarks>This could be useful when the model is public, however the mapping details need to be unknown to others.</remarks>
+        /// </summary>
+        /// <param name="realType">the real type to map</param>
+        /// <param name="phantomType">the type which contains mapping definition</param>
+        public void Phantom(Type realType, Type phantomType)
+        {
+            Table table = new Table(phantomType, _namingStrategy);
+            table.Phantom(realType);
+            SetTable(realType, table);
+        }
+
         private String GetTypeName(Type type)
         {
             return type.FullName;
@@ -222,6 +235,25 @@ namespace LX.EasyDb
                     {
                         PrimaryKey = new PrimaryKey();
                         PrimaryKey.AddColumn(idCol);
+                    }
+                }
+            }
+
+            internal void Phantom(Type type)
+            {
+                Type = type;
+                foreach (var column in _columns.Values)
+                {
+                    SqlMapper.IMemberMap member = column.MemberInfo;
+                    if (member.Field != null)
+                    {
+                        FieldInfo fi = type.GetField(member.Field.Name, BindingFlags.Public | BindingFlags.Instance);
+                        column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
+                    }
+                    else if (member.Property != null)
+                    {
+                        PropertyInfo pi = type.GetProperty(member.Property.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
                     }
                 }
             }

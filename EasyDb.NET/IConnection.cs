@@ -28,6 +28,9 @@ namespace LX.EasyDb
     /// </summary>
     public interface IConnection : System.Data.IDbConnection, IGenericQuery, ITypeQuery, IEntityQuery
     {
+        /// <summary>
+        /// Gets the original associated connection.
+        /// </summary>
         IDbConnection Connection { get; }
         /// <summary>
         /// Gets the <see cref="System.Data.IDbTransaction"/> associated with this connection.
@@ -71,7 +74,17 @@ namespace LX.EasyDb
         /// <param name="commandType">the type indicates or specifies how the command is interpreted</param>
         /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// Creates a criteria query.
+        /// </summary>
+        /// <typeparam name="T">the type of entities</typeparam>
+        /// <returns>a <see cref="LX.EasyDb.ICriteria"/> to query entities</returns>
         ICriteria<T> CreateCriteria<T>();
+        /// <summary>
+        /// Creates a criteria query.
+        /// </summary>
+        /// <param name="type">the type of entities</param>
+        /// <returns>a <see cref="LX.EasyDb.ICriteria"/> to query entities</returns>
         ICriteria CreateCriteria(Type type);
         /// <summary>
         /// Commits the transaction.
@@ -941,7 +954,7 @@ namespace LX.EasyDb
                         info.ParamReader = (cmd, obj) => { (obj as SqlMapper.IDynamicParameters).AddParameters(cmd, identity); };
                     else if (typeof(IEnumerable<KeyValuePair<String, Object>>).IsAssignableFrom(identity.parametersType))
                         info.ParamReader = (cmd, obj) => { (new DynamicParameters(obj) as SqlMapper.IDynamicParameters).AddParameters(cmd, identity); };
-                    else if (identity.parametersType.IsValueType)
+                    else if (identity.parametersType.IsValueType && !identity.parametersType.IsPrimitive)
                         info.ParamReader = (cmd, obj) =>
                         {
                             foreach (PropertyInfo pi in obj.GetType().GetProperties())

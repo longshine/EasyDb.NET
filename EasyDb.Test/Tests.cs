@@ -20,7 +20,27 @@ namespace LX.EasyDb
             public String username { get; set; }
         }
 
-        [ActiveTest]
+        class User2
+        {
+            public UInt64 id { get; set; }
+            public String username { get; set; }
+        }
+
+        public void TestPhantomMapping()
+        {
+            // Maps User2 with mappings defined in class User.
+            Program.factory.Mapping.Phantom(typeof(User2), typeof(User));
+
+            if (!connection.ExistTable<User2>())
+                connection.CreateTable<User2>();
+            Int32 id = connection.Insert<User2>(new User2() { username = "phantom" });
+
+            User2 u = Enumerable.Single(connection.Query<User2>("select * from User_1 where id = @id", new { id = id }));
+            Assert.IsEqualTo(u.username, "phantom");
+
+            connection.DropTable<User2>();
+        }
+
         public void TestCreateTable()
         {
             Boolean gotException = false;

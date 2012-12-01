@@ -50,7 +50,7 @@ namespace LX.EasyDb
             }
         }
 
-        static IConnectionFactory factory;
+        internal static IConnectionFactory factory;
         static Program()
         {
             factory = ConnectionFactoryBuilder.NewBuilder(MySql.Data.MySqlClient.MySqlClientFactory.Instance,

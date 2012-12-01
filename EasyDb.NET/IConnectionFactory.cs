@@ -36,6 +36,10 @@ namespace LX.EasyDb
         /// Gets or sets the string used to open a database.
         /// </summary>
         String ConnectionString { get; set; }
+        /// <summary>
+        /// Gets the O-R mappings in this factory.
+        /// </summary>
+        Mapping Mapping { get; }
     }
 
     /// <summary>
@@ -71,9 +75,9 @@ namespace LX.EasyDb
         public String Name { get; set; }
 
         /// <summary>
-        /// Gets the ORM in this factory.
+        /// Gets the O-R mappings in this factory.
         /// </summary>
-        Mapping IConnectionFactorySupport.Mapping
+        public Mapping Mapping
         {
             get { return _mapping; }
         }
@@ -136,7 +140,7 @@ namespace LX.EasyDb
         private DummyConnectionFactory()
         { }
 
-        public string Name
+        public String Name
         {
             get { return "Uninitialized"; }
             set { throw UninitializedException(); }
@@ -153,7 +157,7 @@ namespace LX.EasyDb
             set { throw UninitializedException(); }
         }
 
-        public string ConnectionString
+        public String ConnectionString
         {
             get { throw UninitializedException(); }
             set { throw UninitializedException(); }
@@ -162,6 +166,11 @@ namespace LX.EasyDb
         private Exception UninitializedException()
         {
             return new InvalidOperationException("Uninitialized provider");
+        }
+
+        public Mapping Mapping
+        {
+            get { throw UninitializedException(); }
         }
     }
 }
