@@ -454,12 +454,12 @@ namespace LX.EasyDb
                         sb.Append(column.GetSqlType(dialect));
 
                         if (column.DefaultValue != null)
-                            sb.Append(" default ").Append(column.DefaultValue);
+                            sb.Append(" DEFAULT ").Append(column.DefaultValue);
 
                         if (column.Nullable)
                             sb.Append(dialect.NullColumnString);
                         else
-                            sb.Append(" not null");
+                            sb.Append(" NOT NULL");
                     }
 
                     // unique constraint
@@ -467,7 +467,7 @@ namespace LX.EasyDb
                         (!column.Nullable || dialect.SupportsNullableUnique))
                     {
                         if (dialect.SupportsUnique)
-                            sb.Append(" unique");
+                            sb.Append(" UNIQUE");
                         else
                         {
                             UniqueKey uk = GetOrCreateUniqueKey(column.GetQuotedName(dialect) + "_");
@@ -477,7 +477,7 @@ namespace LX.EasyDb
 
                     // check constraint
                     if (column.CheckConstraint != null && dialect.SupportsColumnCheck)
-                        sb.Append(" check (")
+                        sb.Append(" CHECK (")
                             .Append(column.CheckConstraint)
                             .Append(")");
 
@@ -505,7 +505,7 @@ namespace LX.EasyDb
                 {
                     foreach (String check in _checkConstraints)
                     {
-                        sb.Append(", check (").Append(check).Append(")");
+                        sb.Append(", CHECK (").Append(check).Append(")");
                     }
                 }
 
@@ -528,13 +528,13 @@ namespace LX.EasyDb
             /// <returns>an SQL string</returns>
             public String ToSqlDrop(Dialect dialect, String defaultCatalog, String defaultSchema)
             {
-                StringBuilder sb = StringHelper.CreateBuilder().Append("drop table ");
+                StringBuilder sb = StringHelper.CreateBuilder().Append("DROP TABLE ");
                 if (dialect.SupportsIfExistsBeforeTableName)
-                    sb.Append("if exists ");
+                    sb.Append("IF EXISTS ");
                 sb.Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema))
                     .Append(dialect.CascadeConstraintsString);
                 if (dialect.SupportsIfExistsAfterTableName)
-                    sb.Append(" if exists");
+                    sb.Append(" IF EXISTS");
                 return sb.ToString();
             }
 
@@ -550,7 +550,7 @@ namespace LX.EasyDb
                 StringBuilder sbSql = StringHelper.CreateBuilder();
                 StringBuilder sbParameters = StringHelper.CreateBuilder();
 
-                sbSql.Append("insert into ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema)).Append(" (");
+                sbSql.Append("INSERT INTO ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema)).Append(" (");
 
                 StringHelper.AppendItemsWithSeperator(Columns, ", ", delegate(Column column)
                 {
@@ -561,7 +561,7 @@ namespace LX.EasyDb
                     return true;
                 }, sbSql, sbParameters);
 
-                sbSql.Append(") values (");
+                sbSql.Append(") VALUES (");
                 sbSql.Append(sbParameters);
                 sbSql.Append(")");
 
@@ -578,8 +578,8 @@ namespace LX.EasyDb
             public String ToSqlUpdate(Dialect dialect, String defaultCatalog, String defaultSchema)
             {
                 StringBuilder sbSql = StringHelper.CreateBuilder()
-                    .Append("update ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema))
-                    .Append(" set ");
+                    .Append("UPDATE ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema))
+                    .Append(" SET ");
                 StringHelper.AppendItemsWithSeperator(Columns, ", ", delegate(Column column)
                 {
                     if (HasPrimaryKey && PrimaryKey.ContainsColumn(column))
@@ -591,8 +591,8 @@ namespace LX.EasyDb
                 }, sbSql);
                 if (HasPrimaryKey)
                 {
-                    sbSql.Append(" where ");
-                    StringHelper.AppendItemsWithSeperator(PrimaryKey.Columns, " and ", delegate(Column column)
+                    sbSql.Append(" WHERE ");
+                    StringHelper.AppendItemsWithSeperator(PrimaryKey.Columns, " AND ", delegate(Column column)
                     {
                         sbSql.Append(column.GetQuotedName(dialect))
                             .Append(" = ").Append(dialect.ParamPrefix)
@@ -646,11 +646,11 @@ namespace LX.EasyDb
             public String ToSqlDelete(Dialect dialect, String defaultCatalog, String defaultSchema)
             {
                 StringBuilder sbSql = StringHelper.CreateBuilder()
-                    .Append("delete from ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema));
+                    .Append("DELETE FROM ").Append(GetQualifiedName(dialect, defaultCatalog, defaultSchema));
                 if (HasPrimaryKey)
                 {
-                    sbSql.Append(" where ");
-                    StringHelper.AppendItemsWithSeperator(PrimaryKey.Columns, " and ", delegate(Column column)
+                    sbSql.Append(" WHERE ");
+                    StringHelper.AppendItemsWithSeperator(PrimaryKey.Columns, " AND ", delegate(Column column)
                     {
                         sbSql.Append(column.GetQuotedName(dialect))
                             .Append(" = ").Append(dialect.ParamPrefix)
