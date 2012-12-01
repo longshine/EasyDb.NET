@@ -27,9 +27,8 @@ namespace LX.EasyDb.Dialects.Function
         /// </summary>
         DbType GetReturnType(DbType firstArgumentType);
         /// <summary>
-        /// Render the function call as SQL fragment.
+        /// Renders the function call as SQL fragment.
         /// </summary>
-        /// <returns></returns>
         String Render(IList<Object> args, IConnectionFactory factory);
     }
 }

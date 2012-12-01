@@ -168,6 +168,12 @@ namespace LX.EasyDb
             return list;
         }
 
+        /// <summary>
+        /// Casts a <see cref="System.Collections.IEnumerable"/> to another <see cref="System.Collections.IEnumerable"/> of type TResult.
+        /// </summary>
+        /// <typeparam name="TResult">the target type</typeparam>
+        /// <param name="source">the <see cref="System.Collections.IEnumerable"/> to cast</param>
+        /// <returns>a <see cref="System.Collections.IEnumerable"/> of type TResult</returns>
         public static IEnumerable<TResult> Cast<TResult>(IEnumerable source)
         {
             List<TResult> list = new List<TResult>();
@@ -179,6 +185,11 @@ namespace LX.EasyDb
             return list;
         }
 
+        /// <summary>
+        /// Returns the number of elements in the source.
+        /// </summary>
+        /// <param name="source">the <see cref="System.Collections.IList"/> to count</param>
+        /// <returns>the number of elements in the source</returns>
         public static Int32 Count(IEnumerable source)
         {
             Int32 count = 0;

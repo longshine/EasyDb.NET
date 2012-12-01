@@ -22,22 +22,34 @@ namespace LX.EasyDb.Dialects.Function
     /// for MySql, (?1 + ?2) for MS SQL. Each dialect will define a template as a string (exactly
     /// like above) marking function parameters with '?' followed by parameter's index (first index is 1).
     /// </summary>
-    class SQLFunctionTemplate : ISQLFunction
+    public class SQLFunctionTemplate : ISQLFunction
     {
         private DbType _type;
         private TemplateRenderer _renderer;
 
+        /// <summary>
+        /// Creates a function with a type of the returned result and a template.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="template"></param>
         public SQLFunctionTemplate(DbType type, String template)
         {
             _type = type;
             _renderer = new TemplateRenderer(template);
         }
 
+        /// <summary>
+        /// Gets the return type of the function.
+        /// May be either a concrete type, or variable depending upon the type of the first argument.
+        /// </summary>
         public DbType GetReturnType(DbType firstArgumentType)
         {
             return _type;
         }
 
+        /// <summary>
+        /// Renders the function call as SQL fragment.
+        /// </summary>
         public String Render(IList<Object> args, IConnectionFactory factory)
         {
             return _renderer.Render(args, factory);

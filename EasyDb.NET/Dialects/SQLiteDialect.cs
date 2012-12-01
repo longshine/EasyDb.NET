@@ -20,6 +20,9 @@ namespace LX.EasyDb.Dialects
     /// </summary>
     public class SQLiteDialect : Dialect
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public SQLiteDialect()
         {
             RegisterColumnType(DbType.Identity, "integer");
@@ -54,6 +57,9 @@ namespace LX.EasyDb.Dialects
             RegisterFunction("substring", new StandardSQLFunction("substr", DbType.String));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Boolean SupportsIfExistsBeforeTableName
         {
             get { return true; }

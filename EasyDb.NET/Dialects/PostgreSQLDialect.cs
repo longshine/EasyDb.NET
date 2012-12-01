@@ -20,6 +20,9 @@ namespace LX.EasyDb.Dialects
     /// </summary>
     public class PostgreSQLDialect : Dialect
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public PostgreSQLDialect()
         {
             RegisterColumnType(DbType.Boolean, "bool");
@@ -111,11 +114,17 @@ namespace LX.EasyDb.Dialects
             RegisterFunction("str", new SQLFunctionTemplate(DbType.String, "cast(?1 as varchar)"));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Char OpenQuote
         {
             get { return '`'; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Char CloseQuote
         {
             get { return '`'; }

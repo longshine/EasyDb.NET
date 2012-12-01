@@ -21,6 +21,9 @@ namespace LX.EasyDb.Dialects
     /// </summary>
     public class MySQLDialect : Dialect
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public MySQLDialect()
         {
             RegisterColumnType(DbType.Identity, "int");
@@ -188,6 +191,9 @@ namespace LX.EasyDb.Dialects
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected virtual void RegisterVarcharTypes()
         {
             RegisterColumnType(DbType.String, "longtext");
@@ -197,11 +203,17 @@ namespace LX.EasyDb.Dialects
             //RegisterColumnType(Types.LONGVARCHAR, "longtext");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Char OpenQuote
         {
             get { return '`'; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override Char CloseQuote
         {
             get { return '`'; }

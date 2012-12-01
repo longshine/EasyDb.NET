@@ -41,7 +41,8 @@ namespace T3dParty.Dapper
     /// <typeparam name="T1">the type of the first parameter</typeparam>
     /// <typeparam name="T2">the type of the second parameter</typeparam>
     /// <typeparam name="TResult">the type of the return value</typeparam>
-    /// <param name="arg">the parameter of the method that this delegate encapsulates</param>
+    /// <param name="arg1">the first parameter of the method that this delegate encapsulates</param>
+    /// <param name="arg2">the second parameter of the method that this delegate encapsulates</param>
     /// <returns></returns>
     public delegate TResult Func<in T1, in T2, out TResult>(T1 arg1, T2 arg2);
     /// <summary>
@@ -480,6 +481,9 @@ namespace T3dParty.Dapper
             typeMap[typeof(Object)] = DbType.Object;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void AddTypeMap(Type type, DbType dbType)
         {
             typeMap[type] = dbType;
@@ -2092,6 +2096,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
         /// </summary>
         /// <param name="type"></param>
         /// <param name="reader"></param>
+        /// <param name="typeMap"></param>
         /// <param name="startBound"></param>
         /// <param name="length"></param>
         /// <param name="returnNullIfFirstMissing"></param>
