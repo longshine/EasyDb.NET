@@ -28,6 +28,7 @@ namespace LX.EasyDb
     /// </summary>
     public interface IConnection : System.Data.IDbConnection, IGenericQuery, ITypeQuery, IEntityQuery
     {
+        IDbConnection Connection { get; }
         /// <summary>
         /// Gets the <see cref="System.Data.IDbTransaction"/> associated with this connection.
         /// </summary>
@@ -71,6 +72,7 @@ namespace LX.EasyDb
         /// <returns>an <see cref="System.Collections.Generic.IEnumerable&lt;IDictionary&gt;"/></returns>
         IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null);
         ICriteria<T> CreateCriteria<T>();
+        ICriteria CreateCriteria(Type type);
         /// <summary>
         /// Commits the transaction.
         /// </summary>
@@ -84,6 +86,9 @@ namespace LX.EasyDb
     interface IConnectionSupport
     {
         IEnumerable<T> List<T>(Criteria<T> criteria);
+        Int32 Count<T>(Criteria<T> criteria);
+        IEnumerable List(Criteria criteria);
+        Int32 Count(Criteria criteria);
     }
 
     class DbConnectionWrapper : IConnection, IConnectionSupport
@@ -360,6 +365,11 @@ namespace LX.EasyDb
         public ICriteria<T> CreateCriteria<T>()
         {
             return new Criterion.Criteria<T>(this, Factory);
+        }
+
+        public ICriteria CreateCriteria(Type type)
+        {
+            return new Criterion.Criteria(type, this, Factory);
         }
 
         #region Mapped
@@ -1040,6 +1050,21 @@ namespace LX.EasyDb
         IEnumerable<T> IConnectionSupport.List<T>(Criteria<T> criteria)
         {
             return Enumerable.ToList(this.Query<T>(criteria.ToSqlString(), criteria.Parameters));
+        }
+
+        Int32 IConnectionSupport.Count<T>(Criteria<T> criteria)
+        {
+            return Enumerable.Single<Int32>(this.Query<Int32>(criteria.ToSqlCountString(), criteria.Parameters));
+        }
+
+        IEnumerable IConnectionSupport.List(Criteria criteria)
+        {
+            return Enumerable.ToList(this.Query(criteria.Type, criteria.ToSqlString(), criteria.Parameters));
+        }
+
+        int IConnectionSupport.Count(Criteria criteria)
+        {
+            return Enumerable.Single<Int32>(this.Query<Int32>(criteria.ToSqlCountString(), criteria.Parameters));
         }
     }
 }

@@ -164,29 +164,44 @@ namespace LX.EasyDb.Criterion
             return new IlikeExpression(Field(fieldName), Value(value), matchMode);
         }
 
+        public static IExpression Add(String fieldName, Object value)
+        {
+            return new SimpleExpression(Field(fieldName), Value(value), "+");
+        }
+
+        public static IExpression Minus(IExpression left, IExpression right)
+        {
+            return new SimpleExpression(left, right, "-");
+        }
+
+        public static IExpression Mod(String fieldName, Object value)
+        {
+            return Function("mod", Field(fieldName), Value(value));
+        }
+
         public static IExpression Max(String fieldName)
         {
-            return new Function("MAX", new IExpression[] { Field(fieldName) });
+            return new AggregateProjection("max", fieldName);
         }
 
         public static IExpression Min(String fieldName)
         {
-            return new Function("MIN", new IExpression[] { Field(fieldName) });
+            return new AggregateProjection("min", fieldName);
         }
 
         public static IExpression Count(String fieldName)
         {
-            return new Function("COUNT", new IExpression[] { Field(fieldName) });
+            return new AggregateProjection("count", fieldName);
         }
 
         public static IExpression Sum(String fieldName)
         {
-            return new Function("SUM", new IExpression[] { Field(fieldName) });
+            return new AggregateProjection("sum", fieldName);
         }
 
         public static IExpression Avg(String fieldName)
         {
-            return new Function("AVG", new IExpression[] { Field(fieldName) });
+            return new AggregateProjection("avg", fieldName);
         }
 
         public static IExpression Function(String function, String fieldName)
@@ -194,7 +209,7 @@ namespace LX.EasyDb.Criterion
             return Function(function, new IExpression[] { Field(fieldName) });
         }
 
-        public static IExpression Function(String function, IExpression[] args)
+        public static IExpression Function(String function, params IExpression[] args)
         {
             return new Function(function, args);
         }
@@ -714,11 +729,11 @@ namespace LX.EasyDb.Criterion
         {
             StringBuilder sb = StringHelper.CreateBuilder();
             if (this.Distinct)
-                sb.Append("distinct ");
+                sb.Append("DISTINCT ");
             sb.Append(this.Expression);
             if (null != this.Alias && this.Alias.Length > 0)
             {
-                sb.Append(" as ");
+                sb.Append(" AS ");
                 sb.Append(this.Alias);
             }
             return sb.ToString();
@@ -727,15 +742,15 @@ namespace LX.EasyDb.Criterion
 
     #endregion
 
-    public class Function : IExpression
+    public class AggregateProjection : IExpression
     {
-        public String name { get; private set; }
-        public IExpression[] args { get; private set; }
+        public String FunctionName { get; private set; }
+        public String FiledName { get; private set; }
 
-        public Function(String name, IExpression[] args)
+        public AggregateProjection(String functionName, String fieldName)
         {
-            this.name = name;
-            this.args = args;
+            FunctionName = functionName;
+            FiledName = fieldName;
         }
 
         public String ToSqlString(ICriteriaRender criteria)
@@ -745,7 +760,29 @@ namespace LX.EasyDb.Criterion
 
         public override String ToString()
         {
-            return this.name + "(" + StringHelper.ToString(this.args) + ")";
+            return FunctionName + "(" + FiledName + ')';
+        }
+    }
+
+    public class Function : IExpression
+    {
+        public String FunctionName { get; private set; }
+        public IExpression[] Arguments { get; private set; }
+
+        public Function(String name, IExpression[] args)
+        {
+            FunctionName = name;
+            Arguments = args;
+        }
+
+        public String ToSqlString(ICriteriaRender criteria)
+        {
+            return criteria.ToSqlString(this);
+        }
+
+        public override String ToString()
+        {
+            return FunctionName + "(" + StringHelper.ToString(Arguments) + ")";
         }
     }
 
