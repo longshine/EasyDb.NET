@@ -123,8 +123,8 @@ namespace LX.EasyDb
                         info.ParamReader(cmd, obj);
                         total += cmd.ExecuteNonQuery();
                     }
-                    return total;
                 }
+                return total;
             }
             else
             {
@@ -385,25 +385,50 @@ namespace LX.EasyDb
             var identity = new SqlMapper.Identity(sql, commandType, connection, type, param == null ? null : param.GetType(), null);
             var cache = GetCacheInfo(identity);
 
-            using (var cmd = SqlMapper.SetupCommand(connection, transaction, sql, cache.ParamReader, param, commandTimeout, commandType))
+            IDbCommand cmd = null;
+            IDataReader reader = null;
+
+            Boolean wasClosed = connection.State == ConnectionState.Closed;
+            try
             {
-                using (var reader = cmd.ExecuteReader())
+                cmd = SqlMapper.SetupCommand(connection, transaction, sql, cache.ParamReader, param, commandTimeout, commandType);
+
+                if (wasClosed) connection.Open();
+                reader = cmd.ExecuteReader(wasClosed ? CommandBehavior.CloseConnection : CommandBehavior.Default);
+                wasClosed = false;  // *if* the connection was closed and we got this far, then we now have a reader
+                                    // with the CloseConnection flag, so the reader will deal with the connection; we
+                                    // still need something in the "finally" to ensure that broken SQL still results
+                                    // in the connection closing itself
+                var tuple = cache.Deserializer;
+                Int32 hash = GetColumnHash(reader);
+                if (tuple.Func == null || tuple.Hash != hash)
                 {
-                    var tuple = cache.Deserializer;
-                    Int32 hash = GetColumnHash(reader);
-
-                    if (tuple.Func == null || tuple.Hash != hash)
-                    {
-                        tuple = cache.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, table, reader, 0, -1, false));
-                        SetQueryCache(identity, cache);
-                    }
-
-                    var func = tuple.Func;
-                    while (reader.Read())
-                    {
-                        yield return func(reader);
-                    }
+                    tuple = cache.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, table, reader, 0, -1, false));
+                    SetQueryCache(identity, cache);
                 }
+
+                var func = tuple.Func;
+
+                while (reader.Read())
+                {
+                    yield return func(reader);
+                }
+                // happy path; close the reader cleanly - no
+                // need for "Cancel" etc
+                reader.Dispose();
+                reader = null;
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    if (!reader.IsClosed)
+                        try { cmd.Cancel(); }
+                        catch { /* don't spol the existing exception */ }
+                    reader.Dispose();
+                }
+                if (wasClosed) connection.Close();
+                if (cmd != null) cmd.Dispose();
             }
         }
 
@@ -505,7 +530,7 @@ namespace LX.EasyDb
 
             Type idType = id.GetType();
             if (table.PrimaryKey.ColumnSpan == 1 && (idType.IsPrimitive || idType == typeof(String) || idType == typeof(DateTime)))
-                args.Add(Enumerable.First(table.PrimaryKey.Columns).FieldName, id);
+                args.Add(Enumerable.First(table.PrimaryKey.Columns).FieldName, id, null, null, null);
             else
                 args.AddDynamicParams(id);
 
@@ -574,9 +599,17 @@ namespace LX.EasyDb
 
         static Func<IDataReader, Object> GetDeserializer(Type type, Mapping.Table table, IDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing)
         { 
+#if NET20
             if (type == typeof(Object)
                 || type.IsAssignableFrom(typeof(Dictionary<String, Object>)))
                 return GetDictionaryDeserializer(table, reader, startBound, length, returnNullIfFirstMissing);
+#else
+            if (type == typeof(object)
+                || type == typeof(SqlMapper.DapperRow))
+            {
+                return SqlMapper.GetDapperRowDeserializer(reader, startBound, length, returnNullIfFirstMissing);
+            }
+#endif
             
             Type underlyingType = null;
             if (!(SqlMapper.HasDbType(type) || type.IsEnum ||  type.FullName == SqlMapper.LinqBinary ||
@@ -901,7 +934,7 @@ namespace LX.EasyDb
                             }
                         };
                     else
-                        info.ParamReader = SqlMapper.CreateParamInfoGenerator(identity);
+                        info.ParamReader = SqlMapper.CreateParamInfoGenerator(identity, false);
                 }
                 SetQueryCache(identity, info);
             }
