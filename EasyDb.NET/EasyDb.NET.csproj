@@ -54,6 +54,7 @@
     <Compile Include="Criterion\IProjection.cs" />
     <Compile Include="Criterion\Junction.cs" />
     <Compile Include="Criterion\MatchMode.cs" />
+    <Compile Include="Criterion\Order.cs" />
     <Compile Include="Criterion\ProjectionList.cs" />
     <Compile Include="Criterion\Projections.cs" />
     <Compile Include="Criterion\SimpleProjection.cs" />

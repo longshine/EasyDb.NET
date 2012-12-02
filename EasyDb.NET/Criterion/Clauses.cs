@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace LX.EasyDb.Criterion
 {
@@ -9,36 +8,57 @@ namespace LX.EasyDb.Criterion
     /// </summary>
     public static class Clauses
     {
+        /// <summary>
+        /// Wraps a field as an expression.
+        /// </summary>
         public static IExpression Field(String fieldName)
         {
             return new FieldExpression(fieldName);
         }
 
+        /// <summary>
+        /// Wraps a field as an expression.
+        /// </summary>
         public static IExpression Field(String fieldName, String tableName)
         {
             return new FieldExpression(fieldName, tableName);
         }
 
+        /// <summary>
+        /// Wraps a parameter value as an expression.
+        /// </summary>
         public static IExpression Value(Object value)
         {
             return new ValueExpression(value);
         }
 
+        /// <summary>
+        /// Wraps a plain text as an expression.
+        /// </summary>
         public static IExpression Plain(String value)
         {
             return new PlainExpression(value);
         }
 
+        /// <summary>
+        /// Applies a "between" constraint to the field.
+        /// </summary>
         public static IExpression Between(String fieldName, Object lower, Object upper)
         {
             return Between(Field(fieldName), Value(lower), Value(upper));
         }
 
+        /// <summary>
+        /// Applies a "between" constraint to the expression.
+        /// </summary>
         public static IExpression Between(IExpression field, IExpression lower, IExpression upper)
         {
             return new BetweenExpression(field, lower, upper);
         }
 
+        /// <summary>
+        /// Applies a "in" constraint to the field.
+        /// </summary>
         public static IExpression In(String fieldName, Object[] values)
         {
             IExpression[] exps = new IExpression[values.Length];
@@ -49,6 +69,9 @@ namespace LX.EasyDb.Criterion
             return In(Field(fieldName), exps);
         }
 
+        /// <summary>
+        /// Applies a "in" constraint to the expression.
+        /// </summary>
         public static IExpression In(IExpression field, Object[] values)
         {
             IExpression[] exps = new IExpression[values.Length];
@@ -59,81 +82,129 @@ namespace LX.EasyDb.Criterion
             return In(field, exps);
         }
 
+        /// <summary>
+        /// Applies a "in" constraint to the expression.
+        /// </summary>
         public static IExpression In(IExpression field, IExpression[] values)
         {
             return new InExpression(field, values);
         }
 
+        /// <summary>
+        /// Applies a "is null" constraint to the field.
+        /// </summary>
         public static IExpression IsNull(String fieldName)
         {
             return new NullExpression(Field(fieldName));
         }
 
+        /// <summary>
+        /// Applies a "is not null" constraint to the field.
+        /// </summary>
         public static IExpression IsNotNull(String fieldName)
         {
             return new NotNullExpression(Field(fieldName));
         }
 
+        /// <summary>
+        /// Group expressions together in a single disjunction (A or B or C...).
+        /// </summary>
         public static Junction Disjunction()
         {
             return new Disjunction();
         }
 
+        /// <summary>
+        /// Group expressions together in a single conjunction (A and B and C...).
+        /// </summary>
         public static Junction Conjunction()
         {
             return new Conjunction();
         }
 
+        /// <summary>
+        /// Return the negation of an expression.
+        /// </summary>
         public static IExpression Not(IExpression expression)
         {
             return new NotExpression(expression);
         }
 
+        /// <summary>
+        /// Return the conjuction of two expressions.
+        /// </summary>
         public static IExpression And(IExpression left, IExpression right)
         {
             return new LogicalExpression(left, right, "and");
         }
 
+        /// <summary>
+        /// Return the disjuction of two expressions.
+        /// </summary>
         public static IExpression Or(IExpression left, IExpression right)
         {
             return new LogicalExpression(left, right, "or");
         }
 
+        /// <summary>
+        /// Applies a "greater than" constraint to the field.
+        /// </summary>
         public static IExpression Gt(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), ">");
         }
 
+        /// <summary>
+        /// Applies a "less than" constraint to the field.
+        /// </summary>
         public static IExpression Lt(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), "<");
         }
 
+        /// <summary>
+        /// Applies a "greater than or equal" constraint to the field.
+        /// </summary>
         public static IExpression Ge(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), ">=");
         }
 
+        /// <summary>
+        /// Applies a "less than or equal" constraint to the field.
+        /// </summary>
         public static IExpression Le(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), "<=");
         }
 
+        /// <summary>
+        /// Applies an "equal" constraint to the field.
+        /// </summary>
         public static IExpression Eq(String fieldName, Object value)
         {
             return Eq(Field(fieldName), Value(value));
         }
 
+        /// <summary>
+        /// Applies an "equal" constraint to the expression.
+        /// </summary>
         public static IExpression Eq(IExpression field, IExpression value)
         {
             return new SimpleExpression(field, value, "=");
         }
 
+        /// <summary>
+        /// Applies a "not equal" constraint to the field.
+        /// </summary>
         public static IExpression Ne(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), "<>");
         }
 
+        /// <summary>
+        /// Applies an "equals" constraint to each property in the key set of a key-value set.
+        /// </summary>
         public static IExpression AllEq(IDictionary<String, Object> fieldNameValues)
         {
             Junction conj = Conjunction();
@@ -144,46 +215,75 @@ namespace LX.EasyDb.Criterion
             return conj;
         }
 
+        /// <summary>
+        /// Applies a "like" constraint to the field.
+        /// </summary>
         public static IExpression Like(String fieldName, String value)
         {
             return new LikeExpression(Field(fieldName), Value(value));
         }
 
+        /// <summary>
+        /// Applies a "like" constraint to the field.
+        /// </summary>
         public static IExpression Like(String fieldName, String value, MatchMode matchMode)
         {
             return new LikeExpression(Field(fieldName), Value(value), matchMode);
         }
 
+        /// <summary>
+        /// A case-insensitive "like", similar to Postgres <code>ilike</code>.
+        /// </summary>
         public static IExpression Ilike(String fieldName, String value)
         {
             return new IlikeExpression(Field(fieldName), Value(value));
         }
 
+        /// <summary>
+        /// A case-insensitive "like", similar to Postgres <code>ilike</code>.
+        /// </summary>
         public static IExpression Ilike(String fieldName, String value, MatchMode matchMode)
         {
             return new IlikeExpression(Field(fieldName), Value(value), matchMode);
         }
 
+        /// <summary>
+        /// Minuses the field with a value.
+        /// </summary>
         public static IExpression Add(String fieldName, Object value)
         {
             return new SimpleExpression(Field(fieldName), Value(value), "+");
         }
 
+        /// <summary>
+        /// Adds the field with a value.
+        /// </summary>
         public static IExpression Minus(IExpression left, IExpression right)
         {
             return new SimpleExpression(left, right, "-");
         }
 
+        /// <summary>
+        /// Applies a mod operation on the field.
+        /// </summary>
         public static IExpression Mod(String fieldName, Object value)
         {
             return Function("mod", Field(fieldName), Value(value));
         }
 
+        /// <summary>
+        /// Creates an expression that represents a function on the given field.
+        /// </summary>
         public static IExpression Function(String function, String fieldName)
         {
             return Function(function, new IExpression[] { Field(fieldName) });
         }
 
+        /// <summary>
+        /// Creates an expression that represents a function.
+        /// </summary>
+        /// <param name="function">the name of the function</param>
+        /// <param name="args">the parameters</param>
         public static IExpression Function(String function, params IExpression[] args)
         {
             return new Function(function, args);
@@ -199,46 +299,49 @@ namespace LX.EasyDb.Criterion
             return new From(new From.Table(tableName, alias));
         }
 
-        public static Order Asc(String fieldName)
-        {
-            return new Order(Clauses.Field(fieldName), true);
-        }
-
-        public static Order Asc(IExpression expression)
-        {
-            return new Order(expression, true);
-        }
-
-        public static Order Desc(String fieldName)
-        {
-            return new Order(Clauses.Field(fieldName), false);
-        }
-
+        /// <summary>
+        /// Applies an "equal" constraint to two properties.
+        /// </summary>
         public static IExpression EqProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, "=");
         }
 
+        /// <summary>
+        /// Applies an "not equal" constraint to two properties.
+        /// </summary>
         public static IExpression NeProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, "<>");
         }
 
+        /// <summary>
+        /// Applies an "less than" constraint to two properties.
+        /// </summary>
         public static IExpression LtProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, "<");
         }
 
+        /// <summary>
+        /// Applies an "greater than" constraint to two properties.
+        /// </summary>
         public static IExpression GtProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, ">");
         }
 
+        /// <summary>
+        /// Applies an "less than or equal" constraint to two properties.
+        /// </summary>
         public static IExpression LeProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, "<=");
         }
 
+        /// <summary>
+        /// Applies an "greater than or equal" constraint to two properties.
+        /// </summary>
         public static IExpression GeProperty(String propertyName, String otherPropertyName)
         {
             return new PropertyExpression(propertyName, otherPropertyName, ">=");
@@ -593,28 +696,6 @@ namespace LX.EasyDb.Criterion
     #endregion
 
     #region Fragments
-
-    public class Order : IFragment
-    {
-        public IExpression Expression { get; private set; }
-        public Boolean Ascending { get; private set; }
-
-        public Order(IExpression expression, Boolean ascending)
-        {
-            Expression = expression;
-            Ascending = ascending;
-        }
-
-        public String Render(ICriteria criteria)
-        {
-            return (criteria as ICriteriaRender).ToSqlString(this);
-        }
-
-        public override String ToString()
-        {
-            return Expression + (Ascending ? " asc" : " desc");
-        }
-    }
 
     public class From : IFragment
     {
