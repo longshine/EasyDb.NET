@@ -22,6 +22,6 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Renders the SQL fragment.
         /// </summary>
-        String ToSqlString(ICriteriaRender criteria);
+        String ToSqlString(ICriteria criteria);
     }
 }

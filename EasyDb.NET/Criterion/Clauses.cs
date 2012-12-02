@@ -297,7 +297,7 @@ namespace LX.EasyDb.Criterion
 
     #region Leaf nodes
 
-    public class FieldExpression : IExpression
+    class FieldExpression : IExpression
     {
         public String Filed { get; private set; }
         public String Table { get; private set; }
@@ -320,13 +320,13 @@ namespace LX.EasyDb.Criterion
                 return Table + "." + Filed;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
     }
 
-    public class PropertyExpression : IExpression
+    class PropertyExpression : IExpression
     {
         public PropertyExpression(String propertyName, String otherPropertyName, String op)
         {
@@ -339,9 +339,9 @@ namespace LX.EasyDb.Criterion
         public IExpression OtherPropertyName { get; private set; }
         public String Op { get; private set; }
 
-        public string ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -350,7 +350,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class ValueExpression : IExpression
+    class ValueExpression : IExpression
     {
         public Object Value { get; private set; }
 
@@ -359,9 +359,9 @@ namespace LX.EasyDb.Criterion
             this.Value = value;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -373,17 +373,17 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class StarExpression : IExpression
+    class StarExpression : IExpression
     {
         public static readonly String STAR = "*";
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
             return STAR;
         }
     }
 
-    public class PlainExpression : IExpression
+    class PlainExpression : IExpression
     {
         public String value { get; private set; }
 
@@ -397,9 +397,9 @@ namespace LX.EasyDb.Criterion
             return this.value;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
     }
 
@@ -407,7 +407,7 @@ namespace LX.EasyDb.Criterion
 
     #region Conditions
 
-    public class BetweenExpression : IExpression
+    class BetweenExpression : IExpression
     {
         public BetweenExpression(IExpression expression, IExpression lower, IExpression upper)
         {
@@ -422,9 +422,9 @@ namespace LX.EasyDb.Criterion
 
         public IExpression Lower { get; private set; }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -439,7 +439,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class InExpression : IExpression
+    class InExpression : IExpression
     {
         public IExpression Expression { get; private set; }
         public IExpression[] Values { get; private set; }
@@ -450,9 +450,9 @@ namespace LX.EasyDb.Criterion
             Values = values;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -461,7 +461,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class LikeExpression : IExpression
+    class LikeExpression : IExpression
     {
         public LikeExpression(IExpression expression, IExpression value, MatchMode matchMode, String escapeChar, Boolean ignoreCase)
         {
@@ -486,9 +486,9 @@ namespace LX.EasyDb.Criterion
         public Boolean IgnoreCase { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -497,7 +497,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class IlikeExpression : IExpression
+    class IlikeExpression : IExpression
     {
         public IlikeExpression(IExpression expression, IExpression value, MatchMode matchMode)
         {
@@ -514,9 +514,9 @@ namespace LX.EasyDb.Criterion
         public IExpression Value { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
-        public string ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -525,7 +525,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class LogicalExpression : IExpression
+    class LogicalExpression : IExpression
     {
         public IExpression Left { get; private set; }
         public IExpression Right { get; private set; }
@@ -538,9 +538,9 @@ namespace LX.EasyDb.Criterion
             Op = op;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -549,7 +549,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class SimpleExpression : IExpression
+    class SimpleExpression : IExpression
     {
         public IExpression Left { get; private set; }
         public IExpression Right { get; private set; }
@@ -569,9 +569,9 @@ namespace LX.EasyDb.Criterion
             IgnoreCase = ignoreCase;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -580,7 +580,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class NullExpression : IExpression
+    class NullExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -589,9 +589,9 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -600,7 +600,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class NotNullExpression : IExpression
+    class NotNullExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -609,9 +609,9 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -620,7 +620,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class NotExpression : IExpression
+    class NotExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -629,9 +629,9 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -655,9 +655,9 @@ namespace LX.EasyDb.Criterion
             Ascending = ascending;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -675,7 +675,7 @@ namespace LX.EasyDb.Criterion
             this.Source = from;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
             //return this.Source.ToSqlString(criteria);
             return null;
@@ -692,9 +692,9 @@ namespace LX.EasyDb.Criterion
                 this.alias = alias;
             }
 
-            public String ToSqlString(ICriteriaRender criteria)
+            public String ToSqlString(ICriteria criteria)
             {
-                return criteria.ToSqlString(this);
+                return (criteria as ICriteriaRender).ToSqlString(this);
             }
 
             public override String ToString()
@@ -720,9 +720,9 @@ namespace LX.EasyDb.Criterion
             this.Distinct = distinct;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -742,7 +742,7 @@ namespace LX.EasyDb.Criterion
 
     #endregion
 
-    public class AggregateProjection : IExpression
+    class AggregateProjection : IExpression
     {
         public String FunctionName { get; private set; }
         public String FiledName { get; private set; }
@@ -753,9 +753,9 @@ namespace LX.EasyDb.Criterion
             FiledName = fieldName;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
@@ -764,7 +764,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    public class Function : IExpression
+    class Function : IExpression
     {
         public String FunctionName { get; private set; }
         public IExpression[] Arguments { get; private set; }
@@ -775,103 +775,14 @@ namespace LX.EasyDb.Criterion
             Arguments = args;
         }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
         {
             return FunctionName + "(" + StringHelper.ToString(Arguments) + ")";
-        }
-    }
-
-    /// <summary>
-    /// Represents an strategy for matching Strings using "like".
-    /// </summary>
-    public abstract class MatchMode
-    {
-        /// <summary>
-        /// Match the entire String to the pattern.
-        /// </summary>
-        public static readonly MatchMode Exact = new MatchExactMode();
-        /// <summary>
-        /// Match the start of the String to the pattern.
-        /// </summary>
-        public static readonly MatchMode Start = new MatchStartMode();
-        /// <summary>
-        /// Match the end of the String to the pattern.
-        /// </summary>
-        public static readonly MatchMode End = new MatchEndMode();
-        /// <summary>
-        /// Match the pattern anywhere in the String.
-        /// </summary>
-        public static readonly MatchMode Anywhere = new MatchAnywhereMode();
-
-        private static Dictionary<String, MatchMode> Instances = new Dictionary<String, MatchMode>();
-        private String _name;
-
-        static MatchMode()
-        {
-            Instances.Add(Exact._name, Exact);
-            Instances.Add(Start._name, Start);
-            Instances.Add(End._name, End);
-            Instances.Add(Anywhere._name, Anywhere);
-        }
-
-        protected internal MatchMode(String name)
-        {
-            _name = name;
-        }
-
-        /// <summary>
-        /// Converts the pattern, by appending/prepending "%".
-        /// </summary>
-        public abstract String ToMatchString(String pattern);
-
-        public override String ToString()
-        {
-            return _name;
-        }
-
-        class MatchExactMode : MatchMode
-        {
-            public MatchExactMode() : base("EXACT") { }
-
-            public override String ToMatchString(String pattern)
-            {
-                return pattern;
-            }
-        }
-
-        class MatchStartMode : MatchMode
-        {
-            public MatchStartMode() : base("START") { }
-
-            public override String ToMatchString(String pattern)
-            {
-                return pattern + "%";
-            }
-        }
-
-        class MatchEndMode : MatchMode
-        {
-            public MatchEndMode() : base("END") { }
-
-            public override String ToMatchString(String pattern)
-            {
-                return "%" + pattern;
-            }
-        }
-
-        class MatchAnywhereMode : MatchMode
-        {
-            public MatchAnywhereMode() : base("ANYWHERE") { }
-
-            public override String ToMatchString(String pattern)
-            {
-                return "%" + pattern + "%";
-            }
         }
     }
 }

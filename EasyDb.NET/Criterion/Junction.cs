@@ -21,9 +21,9 @@ namespace LX.EasyDb.Criterion
 
         public String Op { get; private set; }
 
-        public String ToSqlString(ICriteriaRender criteria)
+        public String ToSqlString(ICriteria criteria)
         {
-            return criteria.ToSqlString(this);
+            return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
         public override String ToString()
