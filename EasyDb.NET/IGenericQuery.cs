@@ -55,7 +55,7 @@ namespace LX.EasyDb
         /// <param name="item">the entity to insert</param>
         /// <param name="commandTimeout">the wait time before terminating the attempt to execute a command and generating an error</param>
         /// <returns>the generated identity value if any</returns>
-        Int32 Insert<T>(T item, Int32? commandTimeout = null);
+        UInt64 Insert<T>(T item, Int32? commandTimeout = null);
         /// <summary>
         /// Finds an entity by one or more keys.
         /// </summary>

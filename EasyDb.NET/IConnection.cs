@@ -212,7 +212,7 @@ namespace LX.EasyDb
             DropTable(typeof(T));
         }
 
-        public Int32 Insert<T>(T item, Int32? commandTimeout = null)
+        public UInt64 Insert<T>(T item, Int32? commandTimeout = null)
         {
             return Insert(typeof(T), item, commandTimeout);
         }
@@ -262,7 +262,7 @@ namespace LX.EasyDb
             DropTable(Factory.Mapping.FindTable(type));
         }
 
-        public Int32 Insert(Type type, Object item, Int32? commandTimeout = null)
+        public UInt64 Insert(Type type, Object item, Int32? commandTimeout = null)
         {
             return Insert(Factory.Mapping.FindTable(type), item, commandTimeout);
         }
@@ -297,7 +297,7 @@ namespace LX.EasyDb
             return buffered ? Enumerable.ToList(data) : data;
         }
 
-        public Int32 Insert(String entity, Object item, Int32? commandTimeout = null)
+        public UInt64 Insert(String entity, Object item, Int32? commandTimeout = null)
         {
             return Insert(Factory.Mapping.FindTable(entity), item, commandTimeout);
         }
@@ -498,24 +498,22 @@ namespace LX.EasyDb
             }
         }
 
-        private Int32 Insert(Mapping.Table table, Object item, Int32? commandTimeout = null)
+        private UInt64 Insert(Mapping.Table table, Object item, Int32? commandTimeout = null)
         {
             ExecuteNonQuery(table.ToSqlInsert(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), item, commandTimeout);
 
-            Int32 r = 0;
+            UInt64 r = 0;
             Mapping.Column idCol = table.IdColumn;
             if (idCol != null && Factory.Dialect.SelectIdentityString != null)
             {
-                r = Enumerable.FirstOrDefault<Int32>(Query<Int32>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
+                r = Enumerable.FirstOrDefault<UInt64>(Query<UInt64>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
                 if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
                 {
+                    Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
                     if (idCol.MemberInfo.Property != null)
-                    {
-                        Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
                         idCol.MemberInfo.Property.SetValue(item, val, null);
-                    }
                     else if (idCol.MemberInfo.Field != null)
-                        idCol.MemberInfo.Field.SetValue(item, r);
+                        idCol.MemberInfo.Field.SetValue(item, val);
                 }
             }
 
