@@ -320,7 +320,7 @@ namespace LX.EasyDb.Criterion
                 return Table + "." + Filed;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -339,7 +339,7 @@ namespace LX.EasyDb.Criterion
         public IExpression OtherPropertyName { get; private set; }
         public String Op { get; private set; }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -359,7 +359,7 @@ namespace LX.EasyDb.Criterion
             this.Value = value;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -377,7 +377,7 @@ namespace LX.EasyDb.Criterion
     {
         public static readonly String STAR = "*";
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return STAR;
         }
@@ -397,7 +397,7 @@ namespace LX.EasyDb.Criterion
             return this.value;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -422,7 +422,7 @@ namespace LX.EasyDb.Criterion
 
         public IExpression Lower { get; private set; }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -450,7 +450,7 @@ namespace LX.EasyDb.Criterion
             Values = values;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -486,7 +486,7 @@ namespace LX.EasyDb.Criterion
         public Boolean IgnoreCase { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -514,7 +514,7 @@ namespace LX.EasyDb.Criterion
         public IExpression Value { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -538,7 +538,7 @@ namespace LX.EasyDb.Criterion
             Op = op;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -569,7 +569,7 @@ namespace LX.EasyDb.Criterion
             IgnoreCase = ignoreCase;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -589,7 +589,7 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -609,7 +609,7 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -629,7 +629,7 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -655,7 +655,7 @@ namespace LX.EasyDb.Criterion
             Ascending = ascending;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -675,7 +675,7 @@ namespace LX.EasyDb.Criterion
             this.Source = from;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             //return this.Source.ToSqlString(criteria);
             return null;
@@ -692,7 +692,7 @@ namespace LX.EasyDb.Criterion
                 this.alias = alias;
             }
 
-            public String ToSqlString(ICriteria criteria)
+            public String Render(ICriteria criteria)
             {
                 return (criteria as ICriteriaRender).ToSqlString(this);
             }
@@ -720,7 +720,7 @@ namespace LX.EasyDb.Criterion
             this.Distinct = distinct;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -753,7 +753,7 @@ namespace LX.EasyDb.Criterion
             FiledName = fieldName;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
@@ -775,7 +775,7 @@ namespace LX.EasyDb.Criterion
             Arguments = args;
         }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }

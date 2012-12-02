@@ -21,7 +21,7 @@ namespace LX.EasyDb.Criterion
 
         public String Op { get; private set; }
 
-        public String ToSqlString(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }

@@ -142,7 +142,7 @@ namespace LX.EasyDb.Criterion
                         sbSql.Append(",");
                     else
                         appendSeperator = true;
-                    sbSql.Append(select.ToSqlString(this));
+                    sbSql.Append(select.Render(this));
                 }
                 sbSql.Append(" FROM ")
                     .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
@@ -163,7 +163,7 @@ namespace LX.EasyDb.Criterion
                     .Append(" ORDER BY ");
                 StringHelper.AppendItemsWithSeperator(_orders, ",", delegate(Order order)
                 {
-                    sb.Append(order.ToSqlString(this));
+                    sb.Append(order.Render(this));
                 }, sb);
                 return sb.ToString();
             }
@@ -178,7 +178,7 @@ namespace LX.EasyDb.Criterion
                 sb.Append(" ").Append(prefix).Append(" ");
                 StringHelper.AppendItemsWithSeperator(exps, sep, delegate(IExpression exp)
                 {
-                    sb.Append(exp.ToSqlString(this));
+                    sb.Append(exp.Render(this));
                 }, sb);
             }
         }
@@ -186,11 +186,11 @@ namespace LX.EasyDb.Criterion
         public String ToSqlString(BetweenExpression between)
         {
             return StringHelper.CreateBuilder()
-                .Append(between.Expression.ToSqlString(this))
+                .Append(between.Expression.Render(this))
                 .Append(" between ")
-                .Append(between.Lower.ToSqlString(this))
+                .Append(between.Lower.Render(this))
                 .Append(" and ")
-                .Append(between.Upper.ToSqlString(this))
+                .Append(between.Upper.Render(this))
                 .ToString();
         }
 
@@ -200,12 +200,12 @@ namespace LX.EasyDb.Criterion
 
             if (like.IgnoreCase)
                 sb.Append(_factory.Dialect.LowercaseFunction)
-                    .Append('(').Append(like.Expression.ToSqlString(this)).Append(')');
+                    .Append('(').Append(like.Expression.Render(this)).Append(')');
             else
-                sb.Append(like.Expression.ToSqlString(this));
+                sb.Append(like.Expression.Render(this));
 
             sb.Append(" like ")
-                .Append(like.MatchMode.ToMatchString(like.Value.ToSqlString(this)));
+                .Append(like.MatchMode.ToMatchString(like.Value.Render(this)));
 
             if (like.EscapeChar != null)
                 sb.Append(" escape \'").Append(like.EscapeChar).Append("\'");
@@ -218,25 +218,25 @@ namespace LX.EasyDb.Criterion
             StringBuilder sb = StringHelper.CreateBuilder();
 
             if (_factory.Dialect is PostgreSQLDialect)
-                sb.Append(ilike.Expression.ToSqlString(this))
+                sb.Append(ilike.Expression.Render(this))
                     .Append(" ilike ");
             else
                 sb.Append(_factory.Dialect.LowercaseFunction)
-                    .Append('(').Append(ilike.Expression.ToSqlString(this)).Append(')')
+                    .Append('(').Append(ilike.Expression.Render(this)).Append(')')
                     .Append(" like ");
 
-            return sb.Append(ilike.MatchMode.ToMatchString(ilike.Value.ToSqlString(this))).ToString();
+            return sb.Append(ilike.MatchMode.ToMatchString(ilike.Value.Render(this))).ToString();
         }
 
         public String ToSqlString(InExpression inexp)
         {
             StringBuilder sb = StringHelper.CreateBuilder()
-                .Append(inexp.Expression.ToSqlString(this))
+                .Append(inexp.Expression.Render(this))
                 .Append(" in (");
 
             StringHelper.AppendItemsWithComma(inexp.Values, delegate(IExpression exp)
             {
-                sb.Append(exp.ToSqlString(this));
+                sb.Append(exp.Render(this));
             }, sb);
 
             return sb.Append(")").ToString();
@@ -252,7 +252,7 @@ namespace LX.EasyDb.Criterion
             StringHelper.AppendItemsWithSeperator(junction.Expressions, ' ' + junction.Op + ' ',
                 delegate(IExpression exp)
                 {
-                    sb.Append(exp.ToSqlString(this));
+                    sb.Append(exp.Render(this));
                 }, sb);
 
             return sb.Append(')').ToString();
@@ -262,11 +262,11 @@ namespace LX.EasyDb.Criterion
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
-                .Append(logical.Left.ToSqlString(this))
+                .Append(logical.Left.Render(this))
                 .Append(' ')
                 .Append(logical.Op)
                 .Append(' ')
-                .Append(logical.Right.ToSqlString(this))
+                .Append(logical.Right.Render(this))
                 .Append(')')
                 .ToString();
         }
@@ -274,19 +274,19 @@ namespace LX.EasyDb.Criterion
         public String ToSqlString(NotExpression not)
         {
             if (_factory.Dialect is MySQLDialect)
-                return "not (" + not.Expression.ToSqlString(this) + ')';
+                return "not (" + not.Expression.Render(this) + ')';
             else
-                return "not " + not.Expression.ToSqlString(this);
+                return "not " + not.Expression.Render(this);
         }
 
         public String ToSqlString(NotNullExpression notNull)
         {
-            return notNull.Expression.ToSqlString(this) + " is not null";
+            return notNull.Expression.Render(this) + " is not null";
         }
 
         public String ToSqlString(NullExpression nullexp)
         {
-            return nullexp.Expression.ToSqlString(this) + " is null";
+            return nullexp.Expression.Render(this) + " is null";
         }
 
         public String ToSqlString(PlainExpression plain)
@@ -314,7 +314,7 @@ namespace LX.EasyDb.Criterion
         public String ToSqlString(Order order)
         {
             return StringHelper.CreateBuilder()
-                .Append(order.Expression.ToSqlString(this))
+                .Append(order.Expression.Render(this))
                 .Append((order.Ascending ? " ASC" : " DESC"))
                 .ToString();
         }
@@ -333,7 +333,7 @@ namespace LX.EasyDb.Criterion
             List<Object> list = new List<Object>();
             foreach (IExpression exp in function.Arguments)
             {
-                list.Add(exp.ToSqlString(this));
+                list.Add(exp.Render(this));
             }
             return func.Render(list, _factory as IConnectionFactory);
         }
@@ -343,7 +343,7 @@ namespace LX.EasyDb.Criterion
             StringBuilder sb = StringHelper.CreateBuilder();
             if (select.Distinct)
                 sb.Append("DISTINCT ");
-            sb.Append(select.Expression.ToSqlString(this));
+            sb.Append(select.Expression.Render(this));
             if (!String.IsNullOrEmpty(select.Alias))
             {
                 sb.Append(" AS ");
@@ -356,11 +356,11 @@ namespace LX.EasyDb.Criterion
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
-                .Append(simple.Left.ToSqlString(this))
+                .Append(simple.Left.Render(this))
                 .Append(' ')
                 .Append(simple.Op)
                 .Append(' ')
-                .Append(simple.Right.ToSqlString(this))
+                .Append(simple.Right.Render(this))
                 .Append(')')
                 .ToString();
         }
@@ -369,11 +369,11 @@ namespace LX.EasyDb.Criterion
         {
             return StringHelper.CreateBuilder()
                 .Append('(')
-                .Append(property.PropertyName.ToSqlString(this))
+                .Append(property.PropertyName.Render(this))
                 .Append(' ')
                 .Append(property.Op)
                 .Append(' ')
-                .Append(property.OtherPropertyName.ToSqlString(this))
+                .Append(property.OtherPropertyName.Render(this))
                 .Append(')')
                 .ToString();
         }

@@ -15,13 +15,13 @@ using System;
 namespace LX.EasyDb.Criterion
 {
     /// <summary>
-    /// Interface of query fragments.
+    /// Represents a query fragment that can be rendered into a query.
     /// </summary>
     public interface IFragment
     {
         /// <summary>
-        /// Renders the SQL fragment.
+        /// Renders this fragment.
         /// </summary>
-        String ToSqlString(ICriteria criteria);
+        String Render(ICriteria criteria);
     }
 }
