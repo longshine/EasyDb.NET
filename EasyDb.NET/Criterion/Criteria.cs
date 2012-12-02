@@ -13,6 +13,7 @@ namespace LX.EasyDb.Criterion
         private IConnectionFactorySupport _factory;
         private List<IExpression> _conditions = new List<IExpression>();
         private List<Select> _selects;
+        private IProjection _projection;
         private List<Order> _orders = new List<Order>();
         private Dictionary<String, Object> _params = new Dictionary<String, Object>();
         private Mapping.Table _table;
@@ -43,6 +44,12 @@ namespace LX.EasyDb.Criterion
         private String RegisterParam(Object value)
         {
             return RegisterParam("p_" + _params.Count, value);
+        }
+
+        public ICriteria SetProjection(IProjection projection)
+        {
+            _projection = projection;
+            return this;
         }
 
         public ICriteria Add(IExpression condition)
@@ -128,23 +135,15 @@ namespace LX.EasyDb.Criterion
         {
             StringBuilder sbSql = StringHelper.CreateBuilder();
 
-            if (_selects == null)
+            if (_projection == null)
             {
                 sbSql.Append(_table.ToSqlSelect(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema, false));
             }
             else
             {
-                sbSql.Append("SELECT ");
-                Boolean appendSeperator = false;
-                foreach (Select select in _selects)
-                {
-                    if (appendSeperator)
-                        sbSql.Append(",");
-                    else
-                        appendSeperator = true;
-                    sbSql.Append(select.Render(this));
-                }
-                sbSql.Append(" FROM ")
+                sbSql.Append("SELECT ")
+                    .Append(_projection.Render(this))
+                    .Append(" FROM ")
                     .Append(_table.GetQualifiedName(_factory.Dialect, _factory.Mapping.Catalog, _factory.Mapping.Schema));
             }
 
@@ -384,14 +383,30 @@ namespace LX.EasyDb.Criterion
             if (func == null)
                 // TODO throw an exception
                 throw new Exception("Function not found");
-            return func.Render(BuildFunctionParameterList(aggregateProjection.FiledName), _factory as IConnectionFactory);
+            return Alias(func.Render(aggregateProjection.BuildFunctionParameterList(this), _factory as IConnectionFactory), aggregateProjection.Alias);
         }
 
-        private static IList<Object> BuildFunctionParameterList(String column)
+        public String ToSqlString(RowCountProjection projection)
         {
-            List<Object> list = new List<Object>();
-            list.Add(column);
-            return list;
+            ISQLFunction func = _factory.Dialect.FindFunction("count");
+            if (func == null)
+                throw new Exception("count function not found");
+            return Alias(func.Render(RowCountProjection.Arguments, _factory as IConnectionFactory), projection.Alias);
+        }
+
+        public String ToSqlString(PropertyProjection propertyProjection)
+        {
+            return Alias(Clauses.Field(propertyProjection.PropertyName).Render(this), propertyProjection.Alias);
+        }
+
+        public String ToSqlString(ExpressionProjection projection)
+        {
+            return Alias(projection.Expression.Render(this), projection.Alias);
+        }
+
+        private static String Alias(String exp, String alias)
+        { 
+            return String.IsNullOrEmpty(alias) ? exp : (exp + " AS " + alias);
         }
     }
 
@@ -459,5 +474,8 @@ namespace LX.EasyDb.Criterion
         String ToSqlString(SimpleExpression simpleExpression);
         String ToSqlString(PropertyExpression propertyExpression);
         String ToSqlString(AggregateProjection aggregateProjection);
+        String ToSqlString(RowCountProjection projection);
+        String ToSqlString(PropertyProjection projection);
+        String ToSqlString(ExpressionProjection projection);
     }
 }

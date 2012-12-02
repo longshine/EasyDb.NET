@@ -1,5 +1,5 @@
 ﻿//
-// LX.EasyDb.IExpression.cs
+// LX.EasyDb.Criterion.IExpression.cs
 //
 // Authors:
 //	Longshine He <longshinehe@users.sourceforge.net>

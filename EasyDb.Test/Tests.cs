@@ -72,12 +72,15 @@ namespace LX.EasyDb
             Assert.IsEqualTo(gotException, false);
         }
 
+        [ActiveTest]
         public void TestCriteria()
         {
             if (!connection.ExistTable<User>())
                 connection.CreateTable<User>();
 
             Int32 id = connection.Insert<User>(new User() { username = "user" });
+            connection.Insert<User>(new User() { username = "user" });
+            connection.Insert<User>(new User() { username = "user" });
 
             ICriteria<User> criteria = connection.CreateCriteria<User>();
             criteria.Add(Clauses.Eq("id", id));
@@ -86,12 +89,24 @@ namespace LX.EasyDb
             Assert.IsEqualTo((Int32)user.id, id);
 
             criteria = connection.CreateCriteria<User>();
-            criteria.AddSelect(Clauses.Select(Clauses.Mod("id", id), "id", false))
-                .AddSelect(Clauses.Select("username"))
-                .Add(Clauses.Eq("username", user.username));
+            criteria.SetProjection(Projections.List()
+                .Add(Projections.CountDistinct("id"), "id")
+                .Add(Projections.GroupProperty("username")));
             user = criteria.SingleOrDefault();
-            Assert.IsEqualTo(user.username, "user");
+            Assert.IsEqualTo(true, user.id >= 3);
+
+            id = connection.Insert<User>(new User() { username = "user2" });
+            criteria = connection.CreateCriteria<User>();
+            criteria.SetProjection(Projections.List()
+                .Add(Projections.Expression(Clauses.Mod("id", id)), "id")
+                .Add(Projections.Property("username")))
+                .Add(Clauses.Eq("username", "user2"));
+            user = criteria.SingleOrDefault();
+            Assert.IsEqualTo(user.username, "user2");
             Assert.IsEqualTo((Int32)user.id, 0);
+
+            //ICriteria c1 = connection.CreateCriteria<Int32>().SetProjection(Projections.RowCount());
+            //Assert.IsEqualTo(c1.SingleOrDefault(), 1);
 
             connection.DropTable<User>();
         }

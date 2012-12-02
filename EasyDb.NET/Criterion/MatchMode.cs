@@ -48,7 +48,7 @@ namespace LX.EasyDb.Criterion
             Instances.Add(Anywhere._name, Anywhere);
         }
 
-        protected internal MatchMode(String name)
+        internal MatchMode(String name)
         {
             _name = name;
         }
@@ -58,6 +58,8 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         public abstract String ToMatchString(String pattern);
 
+        /// <summary>
+        /// </summary>
         public override String ToString()
         {
             return _name;

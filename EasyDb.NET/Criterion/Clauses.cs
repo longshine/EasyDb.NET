@@ -179,31 +179,6 @@ namespace LX.EasyDb.Criterion
             return Function("mod", Field(fieldName), Value(value));
         }
 
-        public static IExpression Max(String fieldName)
-        {
-            return new AggregateProjection("max", fieldName);
-        }
-
-        public static IExpression Min(String fieldName)
-        {
-            return new AggregateProjection("min", fieldName);
-        }
-
-        public static IExpression Count(String fieldName)
-        {
-            return new AggregateProjection("count", fieldName);
-        }
-
-        public static IExpression Sum(String fieldName)
-        {
-            return new AggregateProjection("sum", fieldName);
-        }
-
-        public static IExpression Avg(String fieldName)
-        {
-            return new AggregateProjection("avg", fieldName);
-        }
-
         public static IExpression Function(String function, String fieldName)
         {
             return Function(function, new IExpression[] { Field(fieldName) });
@@ -741,28 +716,6 @@ namespace LX.EasyDb.Criterion
     }
 
     #endregion
-
-    class AggregateProjection : IExpression
-    {
-        public String FunctionName { get; private set; }
-        public String FiledName { get; private set; }
-
-        public AggregateProjection(String functionName, String fieldName)
-        {
-            FunctionName = functionName;
-            FiledName = fieldName;
-        }
-
-        public String Render(ICriteria criteria)
-        {
-            return (criteria as ICriteriaRender).ToSqlString(this);
-        }
-
-        public override String ToString()
-        {
-            return FunctionName + "(" + FiledName + ')';
-        }
-    }
 
     class Function : IExpression
     {

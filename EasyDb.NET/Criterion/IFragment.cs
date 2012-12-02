@@ -1,5 +1,5 @@
 ﻿//
-// LX.EasyDb.IFragment.cs
+// LX.EasyDb.Criterion.IFragment.cs
 //
 // Authors:
 //	Longshine He <longshinehe@users.sourceforge.net>

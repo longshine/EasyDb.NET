@@ -51,7 +51,12 @@
     <Compile Include="Criterion\Criteria.cs" />
     <Compile Include="Criterion\IExpression.cs" />
     <Compile Include="Criterion\IFragment.cs" />
+    <Compile Include="Criterion\IProjection.cs" />
     <Compile Include="Criterion\Junction.cs" />
+    <Compile Include="Criterion\MatchMode.cs" />
+    <Compile Include="Criterion\ProjectionList.cs" />
+    <Compile Include="Criterion\Projections.cs" />
+    <Compile Include="Criterion\SimpleProjection.cs" />
     <Compile Include="DbType.cs" />
     <Compile Include="Dialect.cs" />
     <Compile Include="Dialects\Function\CastFunction.cs" />
