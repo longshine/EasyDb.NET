@@ -28,6 +28,14 @@ namespace LX.EasyDb.Criterion
         {
             return new ProjectionList();
         }
+        
+        /// <summary>
+        /// Create a distinct projection from a projection.
+        /// </summary>
+        public static IProjection distinct(IProjection projection)
+        {
+            return new Distinct(projection);
+        }
 
         /// <summary>
         /// The query row count, ie. <code>count(*)</code>

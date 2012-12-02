@@ -21,7 +21,6 @@ namespace LX.EasyDb
     {
         ICriteria<T> Add(IExpression condition);
         ICriteria<T> AddOrder(Order order);
-        ICriteria<T> AddSelect(Select select);
         IEnumerable<T> List();
         IEnumerable<T> List(Int32 total, Int32 offset);
         Int32 Count();
@@ -32,7 +31,6 @@ namespace LX.EasyDb
     public interface ICriteria
     {
         ICriteria Add(IExpression condition);
-        ICriteria AddSelect(Select select);
         ICriteria AddOrder(Order order);
         IEnumerable List();
         IEnumerable List(Int32 total, Int32 offset);

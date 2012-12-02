@@ -159,4 +159,40 @@ namespace LX.EasyDb.Criterion
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
     }
+
+    class Distinct : IProjection
+    {
+        private readonly IProjection _projection;
+
+        public Distinct(IProjection projection)
+        {
+            _projection = projection;
+        }
+
+        public Boolean Grouped
+        {
+            get { return _projection.Grouped; }
+        }
+
+        public String Alias
+        {
+            get { return _projection.Alias; }
+            set { _projection.Alias = value; }
+        }
+
+        public String Render(ICriteria criteria)
+        {
+            return "distinct " + _projection.Render(criteria);
+        }
+
+        public String ToGroupString(ICriteria criteria)
+        {
+            return _projection.ToGroupString(criteria);
+        }
+
+        public override String ToString()
+        {
+            return "distinct " + _projection.ToString();
+        }
+    }
 }

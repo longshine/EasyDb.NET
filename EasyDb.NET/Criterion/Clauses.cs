@@ -189,31 +189,6 @@ namespace LX.EasyDb.Criterion
             return new Function(function, args);
         }
 
-        public static Select Select(IExpression expression, String alias, Boolean distinct)
-        {
-            return new Select(expression, alias, distinct);
-        }
-
-        public static Select Select(IExpression expression)
-        {
-            return new Select(expression, null, false);
-        }
-
-        public static Select Select(String fieldName)
-        {
-            return Select(Field(fieldName), null, false);
-        }
-
-        public static Select Select(String fieldName, String alias)
-        {
-            return Select(Field(fieldName), alias, false);
-        }
-
-        public static Select Select(String fieldName, String alias, Boolean distinct)
-        {
-            return Select(Field(fieldName), alias, distinct);
-        }
-
         public static From From(String tableName)
         {
             return From(tableName, null);
@@ -679,39 +654,6 @@ namespace LX.EasyDb.Criterion
                 else
                     return this.name + " " + this.alias;
             }
-        }
-    }
-
-    public class Select : IFragment
-    {
-        public IExpression Expression { get; private set; }
-        public String Alias { get; private set; }
-        public Boolean Distinct { get; private set; }
-
-        public Select(IExpression expression, String alias, Boolean distinct)
-        {
-            this.Expression = expression;
-            this.Alias = alias;
-            this.Distinct = distinct;
-        }
-
-        public String Render(ICriteria criteria)
-        {
-            return (criteria as ICriteriaRender).ToSqlString(this);
-        }
-
-        public override String ToString()
-        {
-            StringBuilder sb = StringHelper.CreateBuilder();
-            if (this.Distinct)
-                sb.Append("DISTINCT ");
-            sb.Append(this.Expression);
-            if (null != this.Alias && this.Alias.Length > 0)
-            {
-                sb.Append(" AS ");
-                sb.Append(this.Alias);
-            }
-            return sb.ToString();
         }
     }
 

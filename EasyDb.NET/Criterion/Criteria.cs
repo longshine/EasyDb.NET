@@ -12,7 +12,6 @@ namespace LX.EasyDb.Criterion
         protected IConnection _connection;
         private IConnectionFactorySupport _factory;
         private List<IExpression> _conditions = new List<IExpression>();
-        private List<Select> _selects;
         private IProjection _projection;
         private List<Order> _orders = new List<Order>();
         private Dictionary<String, Object> _params = new Dictionary<String, Object>();
@@ -55,14 +54,6 @@ namespace LX.EasyDb.Criterion
         public ICriteria Add(IExpression condition)
         {
             _conditions.Add(condition);
-            return this;
-        }
-
-        public ICriteria AddSelect(Select select)
-        {
-            if (_selects == null)
-                _selects = new List<Select>();
-            _selects.Add(select);
             return this;
         }
 
@@ -337,20 +328,6 @@ namespace LX.EasyDb.Criterion
             return func.Render(list, _factory as IConnectionFactory);
         }
 
-        public String ToSqlString(Select select)
-        {
-            StringBuilder sb = StringHelper.CreateBuilder();
-            if (select.Distinct)
-                sb.Append("DISTINCT ");
-            sb.Append(select.Expression.Render(this));
-            if (!String.IsNullOrEmpty(select.Alias))
-            {
-                sb.Append(" AS ");
-                sb.Append(_factory.Dialect.Quote(select.Alias));
-            }
-            return sb.ToString();
-        }
-
         public String ToSqlString(SimpleExpression simple)
         {
             return StringHelper.CreateBuilder()
@@ -423,12 +400,6 @@ namespace LX.EasyDb.Criterion
             return this;
         }
 
-        public new ICriteria<T> AddSelect(Select select)
-        {
-            base.AddSelect(select);
-            return this;
-        }
-
         public new ICriteria<T> AddOrder(Order order)
         {
             base.AddOrder(order);
@@ -470,7 +441,6 @@ namespace LX.EasyDb.Criterion
         String ToSqlString(Order order);
         String ToSqlString(From.Table table);
         String ToSqlString(Function function);
-        String ToSqlString(Select select);
         String ToSqlString(SimpleExpression simpleExpression);
         String ToSqlString(PropertyExpression propertyExpression);
         String ToSqlString(AggregateProjection aggregateProjection);
