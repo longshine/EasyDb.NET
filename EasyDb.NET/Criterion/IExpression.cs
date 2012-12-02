@@ -15,7 +15,7 @@ using System;
 namespace LX.EasyDb.Criterion
 {
     /// <summary>
-    /// Interface of query expressions.
+    /// Represnets a query expression.
     /// </summary>
     public interface IExpression : IFragment
     {
