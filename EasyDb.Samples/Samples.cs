@@ -177,7 +177,6 @@ namespace LX.EasyDb.Samples
             if (!connection.ExistTable<User>())
                 connection.CreateTable<User>();
 
-
             User user1 = new User { username = "un1", password = "pwd1" };
             Int32 id = connection.Insert(user1);
             Console.WriteLine("Before transaction: " + user1);
@@ -190,7 +189,7 @@ namespace LX.EasyDb.Samples
             User user2 = connection.Get<User>(id);
             Console.WriteLine("In transaction: " + user2);
 
-            connection.Transaction.Rollback();
+            connection.RollbackTransaction();
 
             user2 = connection.Get<User>(id);
             Console.WriteLine("Rollback transaction: " + user2);

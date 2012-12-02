@@ -202,9 +202,10 @@ namespace LX.EasyDb
 
         public static Type GetSubTypeInNamespace<T>(Assembly asm, String ns)
         {
+            Type type = typeof(T);
             return Array.Find(asm.GetTypes(), delegate(Type t)
             {
-                return String.Equals(t.Namespace, ns) && t.IsSubclassOf(typeof(T));
+                return (ns == null || String.Equals(t.Namespace, ns)) && t.IsSubclassOf(type);
             });
         }
 

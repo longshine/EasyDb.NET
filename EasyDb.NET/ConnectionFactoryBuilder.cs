@@ -80,10 +80,19 @@ namespace LX.EasyDb
         private static System.Data.Common.DbProviderFactory GetProvider(String provider)
         {
             Object factory = null;
+            Type factoryType = null;
             String nsName, assemblyName;
             ReflectHelper.GetTypeNames(provider, out nsName, out assemblyName);
-            Assembly asm = ReflectHelper.LoadAssembly(assemblyName);
-            Type factoryType = ReflectHelper.GetSubTypeInNamespace<System.Data.Common.DbProviderFactory>(asm, nsName);
+            if (String.IsNullOrEmpty(assemblyName))
+            {
+                Assembly asm = ReflectHelper.LoadAssembly(nsName);
+                factoryType = ReflectHelper.GetSubTypeInNamespace<System.Data.Common.DbProviderFactory>(asm, null);
+            }
+            else
+            {
+                Assembly asm = ReflectHelper.LoadAssembly(assemblyName);
+                factoryType = ReflectHelper.GetSubTypeInNamespace<System.Data.Common.DbProviderFactory>(asm, nsName);
+            }
             if (factoryType != null)
             {
                 FieldInfo instanceField = factoryType.GetField("Instance");

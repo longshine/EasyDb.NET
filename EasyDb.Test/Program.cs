@@ -53,9 +53,9 @@ namespace LX.EasyDb
         internal static IConnectionFactory factory;
         static Program()
         {
-            factory = ConnectionFactoryBuilder.NewBuilder(MySql.Data.MySqlClient.MySqlClientFactory.Instance,
+            factory = ConnectionFactoryBuilder.NewBuilder("mysql.data",
                 "Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;", null,
-                new MySQLDialect()).Build();
+                "LX.EasyDb.Dialects.MySQLDialect").Build();
             //factory = ConnectionFactoryBuilder.NewBuilder(System.Data.SQLite.SQLiteFactory.Instance,
             //    "Data Source=test.db;Pooling=true;FailIfMissing=false", null,
             //    new SQLiteDialect()).Build();
