@@ -116,5 +116,13 @@ namespace LX.EasyDb.Criterion
         {
             return new ExpressionProjection(expression);
         }
+
+        /// <summary>
+        /// A grouping projected expression.
+        /// </summary>
+        public static IProjection GroupExpression(IExpression expression)
+        {
+            return new ExpressionProjection(expression) { Grouped = true };
+        }
     }
 }

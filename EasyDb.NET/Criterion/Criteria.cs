@@ -139,8 +139,12 @@ namespace LX.EasyDb.Criterion
             }
 
             GenerateFragment(sbSql, "WHERE", _conditions, " AND ");
+
             if (order != null)
                 sbSql.Append(order);
+
+            if (_projection != null && _projection.Grouped)
+                sbSql.Append(" GROUP BY ").Append(_projection.ToGroupString(this));
 
             return sbSql.ToString();
         }
@@ -381,9 +385,9 @@ namespace LX.EasyDb.Criterion
             return Alias(projection.Expression.Render(this), projection.Alias);
         }
 
-        private static String Alias(String exp, String alias)
+        private String Alias(String exp, String alias)
         { 
-            return String.IsNullOrEmpty(alias) ? exp : (exp + " AS " + alias);
+            return String.IsNullOrEmpty(alias) ? exp : (exp + " AS " + _factory.Dialect.Quote(alias));
         }
     }
 

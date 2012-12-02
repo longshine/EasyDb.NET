@@ -36,5 +36,6 @@ namespace LX.EasyDb
         IEnumerable List(Int32 total, Int32 offset);
         Int32 Count();
         Object SingleOrDefault();
+        ICriteria SetProjection(IProjection projection);
     }
 }

@@ -143,20 +143,40 @@ namespace LX.EasyDb.Criterion
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
+
+        public override String ToGroupString(ICriteria criteria)
+        {
+            if (Grouped)
+                return Clauses.Field(PropertyName).Render(criteria);
+            else
+                return base.ToGroupString(criteria);
+        }
     }
 
-    class ExpressionProjection : SimpleProjection
+    class ExpressionProjection : IProjection
     {
         public ExpressionProjection(IExpression expression)
         {
             Expression = expression;
         }
 
+        public Boolean Grouped { get; set; }
+
+        public String Alias { get; set; }
+
         public IExpression Expression { get; private set; }
 
-        public override String Render(ICriteria criteria)
+        public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
+        }
+
+        public String ToGroupString(ICriteria criteria)
+        {
+            if (Grouped)
+                return Expression.Render(criteria);
+            else
+                return String.Empty;
         }
     }
 
