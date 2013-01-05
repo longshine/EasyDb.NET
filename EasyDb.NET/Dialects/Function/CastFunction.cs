@@ -25,7 +25,7 @@ namespace LX.EasyDb.Dialects.Function
         public String Render(IList<Object> args, IConnectionFactory factory)
         {
             if (args.Count != 2)
-                throw new Exception("cast() requires two arguments");
+                throw new MappingException("cast() requires two arguments");
 
             return "cast(" + args[0] + " as " + factory.Dialect.GetCastTypeName((String)args[1]) + ')';
         }

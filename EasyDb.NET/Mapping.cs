@@ -199,10 +199,9 @@ namespace LX.EasyDb
             {
                 String typeName = type.FullName;
                 TableAttribute tableAttr = ReflectHelper.GetAttribute<TableAttribute>(type);
-                Object[] objs = type.GetCustomAttributes(typeof(TableAttribute), false);
 
                 Name = (tableAttr == null) ? namingStrategy.GetTableName(typeName) : tableAttr.Name;
-                Type = type;
+                EntityType = type;
                 _fields = ReflectHelper.GetSettableFields(type);
                 _properties = ReflectHelper.GetSettableProperties(type);
 
@@ -211,8 +210,8 @@ namespace LX.EasyDb
                     Column column = CreateColumn(pi, namingStrategy);
                     if (column != null)
                     {
-                        if (column.Type == DbType.Empty)
-                            column.Type = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
+                        if (column.DbType == DbType.Empty)
+                            column.DbType = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
                     }
                 }
@@ -222,8 +221,8 @@ namespace LX.EasyDb
                     Column column = CreateColumn(fi, namingStrategy);
                     if (column != null)
                     {
-                        if (column.Type == DbType.Empty)
-                            column.Type = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
+                        if (column.DbType == DbType.Empty)
+                            column.DbType = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
                     }
                 }
@@ -241,7 +240,7 @@ namespace LX.EasyDb
 
             internal void Phantom(Type type)
             {
-                Type = type;
+                EntityType = type;
                 foreach (var column in _columns.Values)
                 {
                     SqlMapper.IMemberMap member = column.MemberInfo;
@@ -267,8 +266,8 @@ namespace LX.EasyDb
                 Column column = new Column();
 
                 column.ColumnName = (colAttr == null || String.IsNullOrEmpty(colAttr.Name)) ? namingStrategy.GetColumnName(mi.Name) : colAttr.Name;
-                if (colAttr != null && colAttr.Type != DbType.Empty)
-                    column.Type = colAttr.Type;
+                if (colAttr != null && colAttr.DbType != DbType.Empty)
+                    column.DbType = colAttr.DbType;
                 AddColumn(column);
 
                 if (ReflectHelper.HasAttribute<PrimaryKeyAttribute>(mi))
@@ -310,9 +309,9 @@ namespace LX.EasyDb
             public String Comment { get; set; }
 
             /// <summary>
-            /// Gets or sets the <see cref="System.Type"/> mapped with this table.
+            /// Gets or sets the <see cref="System.Type"/> of the entity mapped with this table.
             /// </summary>
-            public Type Type { get; private set; }
+            public Type EntityType { get; private set; }
 
             /// <summary>
             /// Gets or sets the primary key.
@@ -359,7 +358,7 @@ namespace LX.EasyDb
             public void AddColumn(Column column)
             {
                 _columns[column.CanonicalName] = column;
-                if (column.Type == DbType.Identity)
+                if (column.DbType == DbType.Identity)
                     IdColumn = column;
             }
 
@@ -442,12 +441,12 @@ namespace LX.EasyDb
                     sb.Append(column.GetQuotedName(dialect))
                         .Append(" ");
 
-                    if (column.Type == DbType.Identity)
+                    if (column.DbType == DbType.Identity)
                     {
                         hasIdentity = true;
                         if (dialect.HasDataTypeInIdentityColumn)
                             sb.Append(column.GetSqlType(dialect));
-                        sb.Append(" ").Append(dialect.GetIdentityColumnString());
+                        sb.Append(" ").Append(dialect.IdentityColumnString);
                     }
                     else
                     {
@@ -554,7 +553,7 @@ namespace LX.EasyDb
 
                 StringHelper.AppendItemsWithSeperator(Columns, ", ", delegate(Column column)
                 {
-                    if (column.Type == DbType.Identity)
+                    if (column.DbType == DbType.Identity)
                         return false;
                     sbSql.Append(column.GetQuotedName(dialect));
                     sbParameters.Append(dialect.ParamPrefix).Append(column.FieldName);
@@ -704,9 +703,9 @@ namespace LX.EasyDb
             /// <param name="names">the column names</param>
             /// <param name="types">the column types</param>
             /// <returns>the matching constructor or default one</returns>
-            public ConstructorInfo FindConstructor(String[] names, Type[] types)
+            ConstructorInfo SqlMapper.ITypeMap.FindConstructor(String[] names, Type[] types)
             {
-                return ReflectHelper.FindConstructor(Type, names, types);
+                return ReflectHelper.FindConstructor(EntityType, names, types);
             }
 
             /// <summary>
@@ -751,7 +750,7 @@ namespace LX.EasyDb
             /// </summary>
             public Column()
             {
-                Type = DbType.Empty;
+                DbType = DbType.Empty;
                 Nullable = true;
                 Length = DEFAULT_LENGTH;
                 Precision = DEFAULT_PRECISION;
@@ -783,7 +782,7 @@ namespace LX.EasyDb
             /// <summary>
             /// Gets or sets the type of this column.
             /// </summary>
-            public DbType Type { get; set; }
+            public DbType DbType { get; set; }
 
             /// <summary>
             /// Gets or sets the member info associated with this column.
@@ -897,7 +896,7 @@ namespace LX.EasyDb
             /// </summary>
             public String GetSqlType(Dialect dialect)
             {
-                return SqlType == null ? dialect.GetTypeName(Type, Length, Precision, Scale) : SqlType;
+                return SqlType == null ? dialect.GetTypeName(DbType, Length, Precision, Scale) : SqlType;
             }
         }
 
@@ -1313,7 +1312,7 @@ namespace LX.EasyDb
             /// </summary>
             public ColumnAttribute()
             {
-                Type = DbType.Empty;
+                DbType = DbType.Empty;
             }
             /// <summary>
             /// Gets or sets the name of this column.
@@ -1322,14 +1321,14 @@ namespace LX.EasyDb
             /// <summary>
             /// Gets or sets the type of this column.
             /// </summary>
-            public DbType Type { get; set; }
+            public DbType DbType { get; set; }
         }
 
         /// <summary>
         /// Determines whether a column is a primary key.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class PrimaryKeyAttribute : Attribute
+        public sealed class PrimaryKeyAttribute : Attribute
         {
         }
 
@@ -1357,7 +1356,7 @@ namespace LX.EasyDb
         /// Defines a unique index.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class UniqueAttribute : IndexAttribute
+        public sealed class UniqueAttribute : IndexAttribute
         {
             /// <summary>
             /// This is a unique index!
@@ -1373,7 +1372,7 @@ namespace LX.EasyDb
         /// Ignores the property.
         /// </summary>
         [AttributeUsage(AttributeTargets.Property)]
-        public class IgnoreAttribute : Attribute
+        public sealed class IgnoreAttribute : Attribute
         {
         }
 

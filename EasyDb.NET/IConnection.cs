@@ -507,7 +507,7 @@ namespace LX.EasyDb
             if (idCol != null && Factory.Dialect.SelectIdentityString != null)
             {
                 r = Enumerable.FirstOrDefault<UInt64>(Query<UInt64>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
-                if (idCol.MemberInfo != null && table.Type != null && table.Type.IsInstanceOfType(item))
+                if (idCol.MemberInfo != null && table.EntityType != null && table.EntityType.IsInstanceOfType(item))
                 {
                     Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
                     if (idCol.MemberInfo.Property != null)

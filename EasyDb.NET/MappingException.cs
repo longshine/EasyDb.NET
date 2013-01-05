@@ -20,6 +20,13 @@ namespace LX.EasyDb
     public class MappingException : Exception
     {
         /// <summary>
+        /// Creates a instance.
+        /// </summary>
+        public MappingException()
+            : base()
+        { }
+
+        /// <summary>
         /// Creates a instance with the given message.
         /// </summary>
         public MappingException(String message)

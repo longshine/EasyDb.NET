@@ -132,7 +132,7 @@ namespace LX.EasyDb.Dialects
         /// </summary>
         public override string SelectIdentityString
         {
-            get { throw new NotImplementedException(); }
+            get { throw new NotSupportedException(); }
         }
 
         /// <summary>

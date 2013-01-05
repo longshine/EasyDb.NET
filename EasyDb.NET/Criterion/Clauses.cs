@@ -27,17 +27,17 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Wraps a parameter value as an expression.
         /// </summary>
-        public static IExpression Value(Object value)
+        public static IExpression Value(Object val)
         {
-            return new ValueExpression(value);
+            return new ValueExpression(val);
         }
 
         /// <summary>
         /// Wraps a plain text as an expression.
         /// </summary>
-        public static IExpression Plain(String value)
+        public static IExpression Plain(String val)
         {
-            return new PlainExpression(value);
+            return new PlainExpression(val);
         }
 
         /// <summary>
@@ -274,9 +274,9 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Creates an expression that represents a function on the given field.
         /// </summary>
-        public static IExpression Function(String function, String fieldName)
+        public static IExpression Function(String func, String fieldName)
         {
-            return Function(function, new IExpression[] { Field(fieldName) });
+            return Function(func, new IExpression[] { Field(fieldName) });
         }
 
         /// <summary>
@@ -284,9 +284,9 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         /// <param name="function">the name of the function</param>
         /// <param name="args">the parameters</param>
-        public static IExpression Function(String function, params IExpression[] args)
+        public static IExpression Function(String func, params IExpression[] args)
         {
-            return new Function(function, args);
+            return new Function(func, args);
         }
 
         public static From From(String tableName)
@@ -423,16 +423,6 @@ namespace LX.EasyDb.Criterion
                 return "'" + Value.ToString() + "'";
             else
                 return Value.ToString();
-        }
-    }
-
-    class StarExpression : IExpression
-    {
-        public static readonly String STAR = "*";
-
-        public String Render(ICriteria criteria)
-        {
-            return STAR;
         }
     }
 
@@ -607,19 +597,12 @@ namespace LX.EasyDb.Criterion
         public IExpression Left { get; private set; }
         public IExpression Right { get; private set; }
         public String Op { get; private set; }
-        public Boolean IgnoreCase { get; private set; }
 
         public SimpleExpression(IExpression left, IExpression right, String op)
-            : this(left, right, op, false)
-        {
-        }
-
-        public SimpleExpression(IExpression left, IExpression right, String op, Boolean ignoreCase)
         {
             Left = left;
             Right = right;
             Op = op;
-            IgnoreCase = ignoreCase;
         }
 
         public String Render(ICriteria criteria)
@@ -714,13 +697,13 @@ namespace LX.EasyDb.Criterion
 
         public class Table : IFragment
         {
-            public String name { get; private set; }
-            public String alias { get; private set; }
+            public String Name { get; private set; }
+            public String Alias { get; private set; }
 
             public Table(String name, String alias)
             {
-                this.name = name;
-                this.alias = alias;
+                this.Name = name;
+                this.Alias = alias;
             }
 
             public String Render(ICriteria criteria)
@@ -730,10 +713,10 @@ namespace LX.EasyDb.Criterion
 
             public override String ToString()
             {
-                if (null == this.alias || 0 == this.alias.Length)
-                    return this.name;
+                if (null == this.Alias || 0 == this.Alias.Length)
+                    return this.Name;
                 else
-                    return this.name + " " + this.alias;
+                    return this.Name + " " + this.Alias;
             }
         }
     }

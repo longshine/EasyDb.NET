@@ -203,7 +203,7 @@ namespace LX.EasyDb.Samples
     [Mapping.Table(Name = "sample_users_i")]
     public interface IUser
     {
-        [Mapping.Column(Type = DbType.Identity)]
+        [Mapping.Column(DbType = DbType.Identity)]
         [Mapping.PrimaryKey]
         Int32 id { get; set; }
         String username { get; set; }
@@ -213,7 +213,7 @@ namespace LX.EasyDb.Samples
     [Mapping.Table(Name = "sample_users")]
     class User
     {
-        [Mapping.Column(Name = "id_1", Type = DbType.Identity)]
+        [Mapping.Column(Name = "id_1", DbType = DbType.Identity)]
         [Mapping.PrimaryKey]
         public Int32 id { get; set; }
         [Mapping.Column(Name = "username_1")]

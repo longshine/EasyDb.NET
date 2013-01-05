@@ -40,7 +40,7 @@ namespace LX.EasyDb.Dialects.Function
             {
             }
 
-            protected override string DoRender(IList<object> args, IConnectionFactory factory)
+            protected override String DoRender(IList<Object> args, IConnectionFactory factory)
             {
                 if (args.Count > 1 &&
                     "distinct".Equals(args[0].ToString(), StringComparison.Ordinal))
@@ -49,7 +49,7 @@ namespace LX.EasyDb.Dialects.Function
                     return base.DoRender(args, factory);
             }
 
-            private string RenderCountDistinct(IList<object> args)
+            private static String RenderCountDistinct(IList<Object> args)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("count(distinct ");
@@ -67,7 +67,7 @@ namespace LX.EasyDb.Dialects.Function
             {
             }
 
-            protected override string DoRender(IList<object> args, IConnectionFactory factory)
+            protected override String DoRender(IList<Object> args, IConnectionFactory factory)
             {
                 return base.DoRender(args, factory);
             }

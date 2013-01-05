@@ -32,7 +32,7 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Create a distinct projection from a projection.
         /// </summary>
-        public static IProjection distinct(IProjection projection)
+        public static IProjection Distinct(IProjection projection)
         {
             return new Distinct(projection);
         }
@@ -112,17 +112,17 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// A projected expression.
         /// </summary>
-        public static IProjection Expression(IExpression expression)
+        public static IProjection Expression(IExpression exp)
         {
-            return new ExpressionProjection(expression);
+            return new ExpressionProjection(exp);
         }
 
         /// <summary>
         /// A grouping projected expression.
         /// </summary>
-        public static IProjection GroupExpression(IExpression expression)
+        public static IProjection GroupExpression(IExpression exp)
         {
-            return new ExpressionProjection(expression) { Grouped = true };
+            return new ExpressionProjection(exp) { Grouped = true };
         }
     }
 }

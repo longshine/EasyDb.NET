@@ -173,9 +173,9 @@ namespace LX.EasyDb.Dialects
 
         /// <summary>
         /// </summary>
-        public override String GetIdentityColumnString()
+        public override String IdentityColumnString
         {
-            return "not null auto_increment";
+            get { return "not null auto_increment"; }
         }
 
         /// <summary>
@@ -215,9 +215,7 @@ namespace LX.EasyDb.Dialects
             return sb.ToString();
         }
 
-        /// <summary>
-        /// </summary>
-        protected virtual void RegisterVarcharTypes()
+        private void RegisterVarcharTypes()
         {
             RegisterColumnType(DbType.String, "longtext");
             //RegisterColumnType( DbType.String, 16777215, "mediumtext" );

@@ -45,9 +45,9 @@ namespace LX.EasyDb
             {
                 Initialize((EasyDbConfiguration)ConfigurationManager.GetSection(EasyDbConfiguration.SECTION));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 

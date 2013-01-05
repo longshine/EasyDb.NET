@@ -44,7 +44,7 @@ namespace LX.EasyDb.Dialects
             RegisterColumnType(DbType.Date, "date");
             RegisterColumnType(DbType.Time, "time");
             RegisterColumnType(DbType.DateTime, "timestamp");
-            //RegisterColumnType(DbType.BINARY, "blob");
+            RegisterColumnType(DbType.Binary, "blob");
             //RegisterColumnType(DbType.VARBINARY, "blob");
             //RegisterColumnType(DbType.LONGVARBINARY, "blob");
             // RegisterColumnType(Types.NULL, "null");
@@ -73,9 +73,9 @@ namespace LX.EasyDb.Dialects
 
         /// <summary>
         /// </summary>
-        public override String GetIdentityColumnString()
+        public override String IdentityColumnString
         {
-            return "primary key autoincrement";
+            get { return "primary key autoincrement"; }
         }
 
         /// <summary>

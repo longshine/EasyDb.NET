@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // 有关程序集的常规信息通过下列属性集
@@ -18,6 +18,8 @@ using System.Runtime.InteropServices;
 // 对 COM 组件不可见。如果需要从 COM 访问此程序集中的类型，
 // 则将该类型上的 ComVisible 属性设置为 true。
 [assembly: ComVisible(false)]
+
+[assembly: CLSCompliant(true)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("55de76c1-fd87-48e0-a5d4-ef035d0a5306")]

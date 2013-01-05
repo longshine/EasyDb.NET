@@ -73,7 +73,7 @@ namespace LX.EasyDb
         /// <summary>
         /// 
         /// </summary>
-        public Dialect()
+        protected Dialect()
         {
             StandardAnsiSqlAggregationFunctions.RegisterFunctions(_sqlFunctions);
 
@@ -295,9 +295,12 @@ namespace LX.EasyDb
         /// <summary>
         /// Gets the syntax used during DDL to define a column as being an IDENTITY of a particular type.
         /// </summary>
-        public virtual String GetIdentityColumnString()
+        public virtual String IdentityColumnString
         {
-            throw new MappingException("Dialect does not support identity key generation");
+            get
+            {
+                throw new NotSupportedException("Dialect does not support identity key generation");
+            }
         }
 
         /// <summary>

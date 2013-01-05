@@ -38,7 +38,7 @@ namespace LX.EasyDb
 
         public static String Unqualify(String qualifiedName)
         {
-            int loc = qualifiedName.LastIndexOf(".");
+            Int32 loc = qualifiedName.LastIndexOf(".");
             return (loc < 0) ? qualifiedName : qualifiedName.Substring(qualifiedName.LastIndexOf(".") + 1);
         }
 

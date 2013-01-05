@@ -14,7 +14,7 @@ namespace LX.EasyDb
         [Mapping.Table(Name = "User_1")]
         class User
         {
-            [Mapping.Column(Type = DbType.Identity)]
+            [Mapping.Column(DbType = DbType.Identity)]
             [Mapping.PrimaryKey]
             public UInt64 id { get; set; }
             public String username { get; set; }

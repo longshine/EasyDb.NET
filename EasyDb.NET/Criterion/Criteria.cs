@@ -63,16 +63,6 @@ namespace LX.EasyDb.Criterion
             return this;
         }
 
-        public IList<Order> Orders
-        {
-            get { return _orders; }
-        }
-
-        public IList<IExpression> Conditions
-        {
-            get { return _conditions; }
-        }
-
         public IDictionary<String, Object> Parameters
         {
             get { return _params; }
@@ -140,11 +130,11 @@ namespace LX.EasyDb.Criterion
 
             GenerateFragment(sbSql, "WHERE", _conditions, " AND ");
 
-            if (order != null)
-                sbSql.Append(order);
-
             if (_projection != null && _projection.Grouped)
                 sbSql.Append(" GROUP BY ").Append(_projection.ToGroupString(this));
+
+            if (order != null)
+                sbSql.Append(order);
 
             return sbSql.ToString();
         }
@@ -323,7 +313,7 @@ namespace LX.EasyDb.Criterion
             ISQLFunction func = _factory.Dialect.FindFunction(function.FunctionName);
             if (func == null)
                 // TODO throw an exception
-                throw new Exception("Function not found");
+                throw new MappingException("Function not found");
             List<Object> list = new List<Object>();
             foreach (IExpression exp in function.Arguments)
             {
@@ -363,7 +353,7 @@ namespace LX.EasyDb.Criterion
             ISQLFunction func = _factory.Dialect.FindFunction(aggregateProjection.FunctionName);
             if (func == null)
                 // TODO throw an exception
-                throw new Exception("Function not found");
+                throw new MappingException("Function not found");
             return Alias(func.Render(aggregateProjection.BuildFunctionParameterList(this), _factory as IConnectionFactory), aggregateProjection.Alias);
         }
 
@@ -371,7 +361,7 @@ namespace LX.EasyDb.Criterion
         {
             ISQLFunction func = _factory.Dialect.FindFunction("count");
             if (func == null)
-                throw new Exception("count function not found");
+                throw new MappingException("count function not found");
             return Alias(func.Render(RowCountProjection.Arguments, _factory as IConnectionFactory), projection.Alias);
         }
 
