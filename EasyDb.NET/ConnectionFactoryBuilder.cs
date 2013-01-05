@@ -29,6 +29,72 @@ namespace LX.EasyDb
         { }
 
         /// <summary>
+        /// Sets the <see cref="System.Data.Common.DbProviderFactory"/>.
+        /// </summary>
+        /// <param name="provider">an instance of <see cref="System.Data.Common.DbProviderFactory"/></param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetDbProviderFactory(System.Data.Common.DbProviderFactory provider)
+        {
+            _factory = provider;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="System.Data.Common.DbProviderFactory"/> by its name.
+        /// </summary>
+        /// <param name="provider">the name of the provider</param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetDbProviderFactory(String provider)
+        {
+            _factory = GetProvider(provider);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="Dialect"/> to use.
+        /// </summary>
+        /// <param name="dialect">an instance of <see cref="Dialect"/></param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetDialect(Dialect dialect)
+        {
+            _dialect = dialect;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="Dialect"/> by its name.
+        /// </summary>
+        /// <param name="dialect">the name of the dialect</param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetDialect(String dialect)
+        {
+            _dialect = Dialect.CreateDialect(dialect);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the connection string.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetConnectionString(String connectionString)
+        {
+            _connectionString = connectionString;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the name of the <see cref="ConnectionFactory"/> to build.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public ConnectionFactoryBuilder SetName(String name)
+        {
+            _name = name;
+            return this;
+        }
+
+        /// <summary>
         /// Builds a provider with given properties.
         /// </summary>
         /// <returns><see cref="LX.EasyDb.IConnectionFactory"/></returns>
@@ -39,6 +105,14 @@ namespace LX.EasyDb
             cf.Name = _name;
             cf.Dialect = _dialect;
             return cf;
+        }
+
+        /// <summary>
+        /// Gets a builder.
+        /// </summary>
+        public static ConnectionFactoryBuilder NewBuilder()
+        {
+            return new ConnectionFactoryBuilder();
         }
 
         /// <summary>

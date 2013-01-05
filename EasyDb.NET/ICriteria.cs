@@ -30,6 +30,7 @@ namespace LX.EasyDb
 
     public interface ICriteria
     {
+        Boolean Parameterized { get; set; }
         ICriteria Add(IExpression condition);
         ICriteria AddOrder(Order order);
         IEnumerable List();
