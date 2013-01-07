@@ -170,7 +170,11 @@ namespace Dapper
                 && (setter = prop.GetSetMethod()) != null
                 )
             {
+#if NET20
+                var method = new DynamicMethod(commandType.Name + "_BindByName", null, new Type[] { typeof(IDbCommand), typeof(bool) }, typeof(SqlMapper));
+#else
                 var method = new DynamicMethod(commandType.Name + "_BindByName", null, new Type[] { typeof(IDbCommand), typeof(bool) });
+#endif
                 var il = method.GetILGenerator();
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Castclass, commandType);
@@ -459,7 +463,9 @@ namespace Dapper
             typeMap[typeof(char)] = DbType.StringFixedLength;
             typeMap[typeof(Guid)] = DbType.Guid;
             typeMap[typeof(DateTime)] = DbType.DateTime;
+#if !NET20
             typeMap[typeof(DateTimeOffset)] = DbType.DateTimeOffset;
+#endif
             typeMap[typeof(TimeSpan)] = DbType.Time;
             typeMap[typeof(byte[])] = DbType.Binary;
             typeMap[typeof(byte?)] = DbType.Byte;
@@ -477,7 +483,9 @@ namespace Dapper
             typeMap[typeof(char?)] = DbType.StringFixedLength;
             typeMap[typeof(Guid?)] = DbType.Guid;
             typeMap[typeof(DateTime?)] = DbType.DateTime;
+#if !NET20
             typeMap[typeof(DateTimeOffset?)] = DbType.DateTimeOffset;
+#endif
             typeMap[typeof(TimeSpan?)] = DbType.Time;
             typeMap[typeof(Object)] = DbType.Object;
         }
@@ -2110,7 +2118,11 @@ Type type, IDataReader reader, ITypeMap typeMap, int startBound = 0, int length 
 #endif
 )
         {
+#if NET20
+            var dm = new DynamicMethod(string.Format("Deserialize{0}", Guid.NewGuid()), typeof(object), new[] { typeof(IDataReader) }, typeof(SqlMapper), true);
+#else
             var dm = new DynamicMethod(string.Format("Deserialize{0}", Guid.NewGuid()), typeof(object), new[] { typeof(IDataReader) }, true);
+#endif
             var il = dm.GetILGenerator();
             il.DeclareLocal(typeof(int));
             il.DeclareLocal(type);
