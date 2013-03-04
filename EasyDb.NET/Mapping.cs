@@ -368,7 +368,7 @@ namespace LX.EasyDb
             /// <summary>
             /// Finds a column by its name.
             /// </summary>
-            /// <param name="columnName">the name of the field to find</param>
+            /// <param name="fieldName">the name of the field to find</param>
             public Column FindColumnByFieldName(String fieldName)
             {
                 return _fieldColumnMap.ContainsKey(fieldName) ? _fieldColumnMap[fieldName] : null;
