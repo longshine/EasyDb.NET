@@ -183,8 +183,8 @@ namespace LX.EasyDb
             private String _name;
             private String _schema;
             private PrimaryKey _primaryKey;
-            private IDictionary<String, Column> _columnFieldMap = new Dictionary<String, Column>();
-            private IDictionary<String, Column> _fieldColumnMap = new Dictionary<String, Column>();
+            private IDictionary<String, Column> _columnFieldMap = new Dictionary<String, Column>(StringComparer.OrdinalIgnoreCase);
+            private IDictionary<String, Column> _fieldColumnMap = new Dictionary<String, Column>(StringComparer.OrdinalIgnoreCase);
             private IDictionary<String, Index> _indices = new Dictionary<String, Index>();
             private IDictionary<String, UniqueKey> _uniqueKeys = new Dictionary<String, UniqueKey>();
             private List<String> _checkConstraints = new List<String>();
@@ -360,7 +360,7 @@ namespace LX.EasyDb
             public void AddColumn(Column column)
             {
                 _fieldColumnMap[column.FieldName] = column;
-                _columnFieldMap[column.CanonicalName] = column;
+                _columnFieldMap[column.ColumnName] = column;
                 if (column.DbType == DbType.Identity)
                     IdColumn = column;
             }
@@ -380,7 +380,6 @@ namespace LX.EasyDb
             /// <param name="columnName">the name of the column to find</param>
             public Column FindColumnByColumnName(String columnName)
             {
-                columnName = columnName.ToLower();
                 return _columnFieldMap.ContainsKey(columnName) ? _columnFieldMap[columnName] : null;
             }
 
@@ -778,11 +777,6 @@ namespace LX.EasyDb
                 set { Dialect.UnQuote(value, out _name); }
             }
 
-            internal String CanonicalName
-            {
-                get { return ColumnName.ToLower(); }
-            }
-
             /// <summary>
             /// Gets the quoted name.
             /// </summary>
@@ -891,7 +885,7 @@ namespace LX.EasyDb
             /// </summary>
             public override Int32 GetHashCode()
             {
-                return ColumnName.ToLower().GetHashCode();
+                return ColumnName.ToUpperInvariant().GetHashCode();
             }
 
             /// <summary>
