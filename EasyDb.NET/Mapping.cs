@@ -183,7 +183,8 @@ namespace LX.EasyDb
             private String _name;
             private String _schema;
             private PrimaryKey _primaryKey;
-            private IDictionary<String, Column> _columns = new Dictionary<String, Column>();
+            private IDictionary<String, Column> _columnFieldMap = new Dictionary<String, Column>();
+            private IDictionary<String, Column> _fieldColumnMap = new Dictionary<String, Column>();
             private IDictionary<String, Index> _indices = new Dictionary<String, Index>();
             private IDictionary<String, UniqueKey> _uniqueKeys = new Dictionary<String, UniqueKey>();
             private List<String> _checkConstraints = new List<String>();
@@ -213,6 +214,7 @@ namespace LX.EasyDb
                         if (column.DbType == DbType.Empty)
                             column.DbType = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
+                        AddColumn(column);
                     }
                 }
 
@@ -224,12 +226,13 @@ namespace LX.EasyDb
                         if (column.DbType == DbType.Empty)
                             column.DbType = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
+                        AddColumn(column);
                     }
                 }
 
                 if (PrimaryKey == null)
                 {
-                    Column idCol = FindColumn("id");
+                    Column idCol = FindColumnByFieldName("id");
                     if (idCol != null)
                     {
                         PrimaryKey = new PrimaryKey();
@@ -241,7 +244,7 @@ namespace LX.EasyDb
             internal void Phantom(Type type)
             {
                 EntityType = type;
-                foreach (var column in _columns.Values)
+                foreach (var column in Columns)
                 {
                     SqlMapper.IMemberMap member = column.MemberInfo;
                     if (member.Field != null)
@@ -268,7 +271,6 @@ namespace LX.EasyDb
                 column.ColumnName = (colAttr == null || String.IsNullOrEmpty(colAttr.Name)) ? namingStrategy.GetColumnName(mi.Name) : colAttr.Name;
                 if (colAttr != null && colAttr.DbType != DbType.Empty)
                     column.DbType = colAttr.DbType;
-                AddColumn(column);
 
                 if (ReflectHelper.HasAttribute<PrimaryKeyAttribute>(mi))
                 {
@@ -340,7 +342,7 @@ namespace LX.EasyDb
             /// </summary>
             public IEnumerable<Column> Columns
             {
-                get { return _columns.Values; }
+                get { return _columnFieldMap.Values; }
             }
 
             /// <summary>
@@ -348,7 +350,7 @@ namespace LX.EasyDb
             /// </summary>
             public Int32 ColumnSpan
             {
-                get { return _columns.Count; }
+                get { return _columnFieldMap.Count; }
             }
 
             /// <summary>
@@ -357,7 +359,8 @@ namespace LX.EasyDb
             /// <param name="column">the column to add</param>
             public void AddColumn(Column column)
             {
-                _columns[column.CanonicalName] = column;
+                _fieldColumnMap[column.FieldName] = column;
+                _columnFieldMap[column.CanonicalName] = column;
                 if (column.DbType == DbType.Identity)
                     IdColumn = column;
             }
@@ -365,11 +368,20 @@ namespace LX.EasyDb
             /// <summary>
             /// Finds a column by its name.
             /// </summary>
+            /// <param name="columnName">the name of the field to find</param>
+            public Column FindColumnByFieldName(String fieldName)
+            {
+                return _fieldColumnMap.ContainsKey(fieldName) ? _fieldColumnMap[fieldName] : null;
+            }
+
+            /// <summary>
+            /// Finds a column by its name.
+            /// </summary>
             /// <param name="columnName">the name of the column to find</param>
-            public Column FindColumn(String columnName)
+            public Column FindColumnByColumnName(String columnName)
             {
                 columnName = columnName.ToLower();
-                return _columns.ContainsKey(columnName) ? _columns[columnName] : null;
+                return _columnFieldMap.ContainsKey(columnName) ? _columnFieldMap[columnName] : null;
             }
 
             /// <summary>
@@ -435,7 +447,7 @@ namespace LX.EasyDb
                     .Append(" (");
                 Boolean hasIdentity = false;
 
-                StringHelper.AppendItemsWithComma(_columns.Values, delegate(Column column)
+                StringHelper.AppendItemsWithComma(Columns, delegate(Column column)
                 {
                     // column info
                     sb.Append(column.GetQuotedName(dialect))
@@ -693,7 +705,7 @@ namespace LX.EasyDb
             /// <returns>the mapping implementation</returns>
             SqlMapper.IMemberMap SqlMapper.ITypeMap.GetMember(String columnName)
             {
-                Column column = FindColumn(columnName);
+                Column column = FindColumnByColumnName(columnName);
                 return column == null ? null : column.MemberInfo;
             }
 
@@ -728,7 +740,7 @@ namespace LX.EasyDb
             /// <returns>the mapped field name</returns>
             public String GetFieldName(String columnName)
             {
-                Column column = FindColumn(columnName);
+                Column column = FindColumnByColumnName(columnName);
                 return column == null ? columnName : column.FieldName;
             }
         }

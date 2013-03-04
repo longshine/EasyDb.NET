@@ -288,7 +288,7 @@ namespace LX.EasyDb.Criterion
 
         public String ToSqlString(FieldExpression field)
         {
-            Mapping.Column column = _table.FindColumn(field.Filed);
+            Mapping.Column column = _table.FindColumnByFieldName(field.Filed);
             if (column == null)
                 return field.ToString();
             else

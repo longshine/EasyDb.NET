@@ -688,7 +688,7 @@ namespace LX.EasyDb
                         var tmp = reader.GetValue(i);
                         if (tmp == DBNull.Value)
                             continue;
-                        Mapping.Column column = table.FindColumn(reader.GetName(i));
+                        Mapping.Column column = table.FindColumnByColumnName(reader.GetName(i));
                         if (column != null)
                         {
                             PropertyInfo pi = (column.MemberInfo == null || column.MemberInfo.Property == null) ? type.GetProperty(column.FieldName) : column.MemberInfo.Property;
