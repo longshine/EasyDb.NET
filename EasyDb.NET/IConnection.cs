@@ -461,7 +461,7 @@ namespace LX.EasyDb
                 return false;
             try
             {
-                ExecuteScalar("select count(*) from " + table.GetQualifiedName(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), null);
+                ExecuteScalar("select 1 from " + table.GetQualifiedName(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), null);
             }
             catch (Exception)
             {
