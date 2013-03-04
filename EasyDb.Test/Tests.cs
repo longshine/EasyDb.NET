@@ -16,13 +16,13 @@ namespace LX.EasyDb
         {
             [Mapping.Column(DbType = DbType.Identity)]
             [Mapping.PrimaryKey]
-            public UInt64 id { get; set; }
+            public Int64 id { get; set; }
             public String username { get; set; }
         }
 
         class User2
         {
-            public UInt64 id { get; set; }
+            public Int64 id { get; set; }
             public String username { get; set; }
         }
 
@@ -33,7 +33,7 @@ namespace LX.EasyDb
 
             if (!connection.ExistTable<User2>())
                 connection.CreateTable<User2>();
-            UInt64 id = connection.Insert<User2>(new User2() { username = "phantom" });
+            Int64 id = connection.Insert<User2>(new User2() { username = "phantom" });
 
             User2 u = Enumerable.Single(connection.Query<User2>("select * from User_1 where username = @username", new { username = "phantom" }));
             Assert.IsEqualTo(u.username, "phantom");
@@ -78,7 +78,7 @@ namespace LX.EasyDb
             if (!connection.ExistTable<User>())
                 connection.CreateTable<User>();
 
-            UInt64 id = connection.Insert<User>(new User() { username = "user" });
+            Int64 id = connection.Insert<User>(new User() { username = "user" });
             connection.Insert<User>(new User() { username = "user" });
             connection.Insert<User>(new User() { username = "user" });
 

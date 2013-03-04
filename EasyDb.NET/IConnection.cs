@@ -212,7 +212,7 @@ namespace LX.EasyDb
             DropTable(typeof(T));
         }
 
-        public UInt64 Insert<T>(T item, Int32? commandTimeout = null)
+        public Int64 Insert<T>(T item, Int32? commandTimeout = null)
         {
             return Insert(typeof(T), item, commandTimeout);
         }
@@ -262,7 +262,7 @@ namespace LX.EasyDb
             DropTable(Factory.Mapping.FindTable(type));
         }
 
-        public UInt64 Insert(Type type, Object item, Int32? commandTimeout = null)
+        public Int64 Insert(Type type, Object item, Int32? commandTimeout = null)
         {
             return Insert(Factory.Mapping.FindTable(type), item, commandTimeout);
         }
@@ -297,7 +297,7 @@ namespace LX.EasyDb
             return buffered ? Enumerable.ToList(data) : data;
         }
 
-        public UInt64 Insert(String entity, Object item, Int32? commandTimeout = null)
+        public Int64 Insert(String entity, Object item, Int32? commandTimeout = null)
         {
             return Insert(Factory.Mapping.FindTable(entity), item, commandTimeout);
         }
@@ -498,15 +498,15 @@ namespace LX.EasyDb
             }
         }
 
-        private UInt64 Insert(Mapping.Table table, Object item, Int32? commandTimeout = null)
+        private Int64 Insert(Mapping.Table table, Object item, Int32? commandTimeout = null)
         {
             ExecuteNonQuery(table.ToSqlInsert(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), item, commandTimeout);
 
-            UInt64 r = 0;
+            Int64 r = 0;
             Mapping.Column idCol = table.IdColumn;
             if (idCol != null && Factory.Dialect.SelectIdentityString != null)
             {
-                r = Enumerable.FirstOrDefault<UInt64>(Query<UInt64>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
+                r = Enumerable.FirstOrDefault<Int64>(Query<Int64>(Factory.Dialect.SelectIdentityString, null, false, commandTimeout));
                 if (idCol.MemberInfo != null && table.EntityType != null && table.EntityType.IsInstanceOfType(item))
                 {
                     Object val = Convert.ChangeType(r, idCol.MemberInfo.Property.PropertyType);
