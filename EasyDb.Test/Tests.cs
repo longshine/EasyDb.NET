@@ -4,12 +4,47 @@ using System.Data;
 using System.IO;
 using Dapper;
 using LX.EasyDb.Criterion;
+#if !NET20
+using System.Linq;
+#endif
 
 namespace LX.EasyDb
 {
     class Tests
     {
         IConnection connection = Program.GetOpenConnection();
+
+        class Parent
+        {
+            public int Id { get; set; }
+            public readonly List<Child> Children = new List<Child>();
+        }
+        class Child
+        {
+            public int Id { get; set; }
+        }
+        
+#if !NET20
+        public void ParentChildIdentityAssociations()
+        {
+            var lookup = new Dictionary<int, Parent>();
+            var parents = connection.Query<Parent, Child, Parent>(@"select 1 as `Id`, 1 as `Id` union all select 1,2 union all select 2,3 union all select 1,4 union all select 3,5",
+                (parent, child) =>
+                {
+                    Parent found;
+                    if (!lookup.TryGetValue(parent.Id, out found))
+                    {
+                        lookup.Add(parent.Id, found = parent);
+                    }
+                    found.Children.Add(child);
+                    return found;
+                }).Distinct().ToDictionary(p => p.Id);
+            Assert.IsEqualTo(parents.Count(), 3);
+            Assert.IsEqualTo(parents[1].Children.Select(c => c.Id).SequenceEqual(new[] { 1, 2, 4 }), true);
+            Assert.IsEqualTo(parents[2].Children.Select(c => c.Id).SequenceEqual(new[] { 3 }), true);
+            Assert.IsEqualTo(parents[3].Children.Select(c => c.Id).SequenceEqual(new[] { 5 }), true);
+        }
+#endif
 
         [Mapping.Table(Name = "User_1")]
         class User
@@ -34,6 +69,7 @@ namespace LX.EasyDb
             if (!connection.ExistTable<User2>())
                 connection.CreateTable<User2>();
             Int64 id = connection.Insert<User2>(new User2() { username = "phantom" });
+
 
             User2 u = Enumerable.Single(connection.Query<User2>("select * from User_1 where username = @username", new { username = "phantom" }));
             Assert.IsEqualTo(u.username, "phantom");

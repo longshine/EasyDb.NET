@@ -105,7 +105,7 @@ namespace LX.EasyDb.Samples
 
             if (!connection.ExistTable<IUser>())
                 connection.CreateTable<IUser>();
-            UInt64 id = connection.Insert(typeof(IUser), new { username = "un1", password = "pwd1" });
+            Int64 id = connection.Insert(typeof(IUser), new { username = "un1", password = "pwd1" });
             IUser user = connection.Get<IUser>(id);
             Console.WriteLine(String.Format("{3}: id : {0}, username : {1}, password : {2}", user.id, user.username, user.password, user.GetType()));
 
@@ -151,7 +151,7 @@ namespace LX.EasyDb.Samples
 
             User user1 = new User { username = "un1", password = "pwd1" };
 
-            UInt64 id = connection.Insert(user1);
+            Int64 id = connection.Insert(user1);
             Console.WriteLine(user1);
 
             user1.password = "modified";
@@ -178,7 +178,7 @@ namespace LX.EasyDb.Samples
                 connection.CreateTable<User>();
 
             User user1 = new User { username = "un1", password = "pwd1" };
-            UInt64 id = connection.Insert(user1);
+            Int64 id = connection.Insert(user1);
             Console.WriteLine("Before transaction: " + user1);
 
             connection.BeginTransaction();
