@@ -37,6 +37,11 @@ namespace LX.EasyDb.Criterion
             return new Distinct(projection);
         }
 
+        public static IProjection Distinct(String propertyName)
+        {
+            return new Distinct(Property(propertyName));
+        }
+
         /// <summary>
         /// The query row count, ie. <code>count(*)</code>
         /// </summary>

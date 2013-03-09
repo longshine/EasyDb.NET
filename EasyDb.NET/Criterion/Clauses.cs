@@ -59,25 +59,20 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Applies a "in" constraint to the field.
         /// </summary>
-        public static IExpression In(String fieldName, Object[] values)
+        public static IExpression In(String fieldName, IEnumerable<Object> values)
         {
-            IExpression[] exps = new IExpression[values.Length];
-            for (int i = 0; i < exps.Length; i++)
-            {
-                exps[i] = Value(values[i]);
-            }
-            return In(Field(fieldName), exps);
+            return In(Field(fieldName), values);
         }
 
         /// <summary>
         /// Applies a "in" constraint to the expression.
         /// </summary>
-        public static IExpression In(IExpression field, Object[] values)
+        public static IExpression In(IExpression field, IEnumerable<Object> values)
         {
-            IExpression[] exps = new IExpression[values.Length];
-            for (int i = 0; i < exps.Length; i++)
+            List<IExpression> exps = new List<IExpression>();
+            foreach (Object val in values)
             {
-                exps[i] = Value(values[i]);
+                exps.Add(Value(val));
             }
             return In(field, exps);
         }
@@ -85,7 +80,7 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Applies a "in" constraint to the expression.
         /// </summary>
-        public static IExpression In(IExpression field, IExpression[] values)
+        public static IExpression In(IExpression field, IEnumerable<IExpression> values)
         {
             return new InExpression(field, values);
         }
@@ -220,7 +215,7 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         public static IExpression Like(String fieldName, String value)
         {
-            return new LikeExpression(Field(fieldName), Value(value));
+            return new LikeExpression(Field(fieldName), value);
         }
 
         /// <summary>
@@ -228,7 +223,7 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         public static IExpression Like(String fieldName, String value, MatchMode matchMode)
         {
-            return new LikeExpression(Field(fieldName), Value(value), matchMode);
+            return new LikeExpression(Field(fieldName), value, matchMode);
         }
 
         /// <summary>
@@ -236,7 +231,7 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         public static IExpression Ilike(String fieldName, String value)
         {
-            return new IlikeExpression(Field(fieldName), Value(value));
+            return new IlikeExpression(Field(fieldName), value);
         }
 
         /// <summary>
@@ -244,7 +239,7 @@ namespace LX.EasyDb.Criterion
         /// </summary>
         public static IExpression Ilike(String fieldName, String value, MatchMode matchMode)
         {
-            return new IlikeExpression(Field(fieldName), Value(value), matchMode);
+            return new IlikeExpression(Field(fieldName), value, matchMode);
         }
 
         /// <summary>
@@ -485,9 +480,9 @@ namespace LX.EasyDb.Criterion
     class InExpression : IExpression
     {
         public IExpression Expression { get; private set; }
-        public IExpression[] Values { get; private set; }
+        public IEnumerable<IExpression> Values { get; private set; }
 
-        public InExpression(IExpression expression, IExpression[] values)
+        public InExpression(IExpression expression, IEnumerable<IExpression> values)
         {
             Expression = expression;
             Values = values;
@@ -500,13 +495,13 @@ namespace LX.EasyDb.Criterion
 
         public override String ToString()
         {
-            return Expression + " in (" + StringHelper.ToString(Values) + ')';
+            return Expression + " in (" + StringHelper.ToString(Enumerable.Cast<Object>(Values)) + ')';
         }
     }
 
     class LikeExpression : IExpression
     {
-        public LikeExpression(IExpression expression, IExpression value, MatchMode matchMode, String escapeChar, Boolean ignoreCase)
+        public LikeExpression(IExpression expression, String value, MatchMode matchMode, String escapeChar, Boolean ignoreCase)
         {
             Expression = expression;
             Value = value;
@@ -515,16 +510,16 @@ namespace LX.EasyDb.Criterion
             IgnoreCase = ignoreCase;
         }
 
-        public LikeExpression(IExpression expression, IExpression value)
+        public LikeExpression(IExpression expression, String value)
             : this(expression, value, MatchMode.Exact, null, false)
         { }
 
-        public LikeExpression(IExpression expression, IExpression value, MatchMode matchMode)
+        public LikeExpression(IExpression expression, String value, MatchMode matchMode)
             : this(expression, value, matchMode, null, false)
         { }
 
         public IExpression Expression { get; private set; }
-        public IExpression Value { get; private set; }
+        public String Value { get; private set; }
         public String EscapeChar { get; private set; }
         public Boolean IgnoreCase { get; private set; }
         public MatchMode MatchMode { get; private set; }
@@ -536,25 +531,25 @@ namespace LX.EasyDb.Criterion
 
         public override String ToString()
         {
-            return Expression + " like " + MatchMode.ToMatchString(Value.ToString());
+            return Expression + " like " + MatchMode.ToMatchString(Value);
         }
     }
 
     class IlikeExpression : IExpression
     {
-        public IlikeExpression(IExpression expression, IExpression value, MatchMode matchMode)
+        public IlikeExpression(IExpression expression, String value, MatchMode matchMode)
         {
             Expression = expression;
             Value = value;
             MatchMode = matchMode;
         }
 
-        public IlikeExpression(IExpression expression, IExpression value)
+        public IlikeExpression(IExpression expression, String value)
             : this(expression, value, MatchMode.Exact)
         { }
 
         public IExpression Expression { get; private set; }
-        public IExpression Value { get; private set; }
+        public String Value { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
         public String Render(ICriteria criteria)
@@ -564,7 +559,7 @@ namespace LX.EasyDb.Criterion
 
         public override String ToString()
         {
-            return Expression + " ilike " + MatchMode.ToMatchString(Value.ToString());
+            return Expression + " ilike " + MatchMode.ToMatchString(Value);
         }
     }
 

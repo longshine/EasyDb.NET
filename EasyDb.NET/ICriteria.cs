@@ -25,7 +25,7 @@ namespace LX.EasyDb
         IEnumerable<T> List(Int32 total, Int32 offset);
         Int32 Count();
         T SingleOrDefault();
-        ICriteria SetProjection(IProjection projection);
+        ICriteria<T> SetProjection(IProjection projection);
     }
 
     public interface ICriteria

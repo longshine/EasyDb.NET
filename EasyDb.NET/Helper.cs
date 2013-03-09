@@ -13,6 +13,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+#if !NET20
+using System.Linq;
+#endif
 using System.Reflection;
 using System.Text;
 
@@ -82,20 +85,22 @@ namespace LX.EasyDb
             return new StringBuilder();
         }
 
-        public static String ToString(Object[] objects)
+        public static String ToString(IEnumerable<Object> objects)
         {
             return Join(", ", objects);
         }
 
-        public static String Join(String seperator, Object[] objects)
+        public static String Join(String seperator, IEnumerable<Object> objects)
         {
-            int len = objects.Length;
-            StringBuilder sb = new StringBuilder(len * 2);
-            if (len > 0)
+            Boolean first = true;
+            StringBuilder sb = new StringBuilder();
+            foreach (Object obj in objects)
             {
-                sb.Append(objects[0]);
-                for (int i = 1; i < len; i++)
-                    sb.Append(seperator).Append(objects[i]);
+                if (first)
+                    first = false;
+                else
+                    sb.Append(seperator);
+                sb.Append(obj);
             }
             return sb.ToString();
         }
@@ -126,6 +131,7 @@ namespace LX.EasyDb
 
         public static ConstructorInfo FindConstructor(Type type, String[] names, Type[] types)
         {
+#if NET20
             var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             Array.Sort(constructors, delegate(ConstructorInfo c1, ConstructorInfo c2)
             {
@@ -137,6 +143,10 @@ namespace LX.EasyDb
                     return c1.GetParameters().Length.CompareTo(c2.GetParameters().Length);
             });
             foreach (ConstructorInfo ctor in constructors)
+#else
+            var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (ConstructorInfo ctor in constructors.OrderBy(c => c.IsPublic ? 0 : (c.IsPrivate ? 2 : 1)).ThenBy(c => c.GetParameters().Length))
+#endif
             {
                 ParameterInfo[] ctorParameters = ctor.GetParameters();
 

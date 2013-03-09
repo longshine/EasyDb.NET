@@ -188,8 +188,14 @@ namespace LX.EasyDb.Criterion
             else
                 sb.Append(like.Expression.Render(this));
 
-            sb.Append(" like ")
-                .Append(like.MatchMode.ToMatchString(like.Value.Render(this)));
+            sb.Append(" like ");
+
+            String value = like.MatchMode.ToMatchString(like.Value);
+
+            if (Parameterized)
+                sb.Append(RegisterParam(value));
+            else
+                sb.Append("'").Append(value).Append("'");
 
             if (like.EscapeChar != null)
                 sb.Append(" escape \'").Append(like.EscapeChar).Append("\'");
@@ -209,7 +215,14 @@ namespace LX.EasyDb.Criterion
                     .Append('(').Append(ilike.Expression.Render(this)).Append(')')
                     .Append(" like ");
 
-            return sb.Append(ilike.MatchMode.ToMatchString(ilike.Value.Render(this))).ToString();
+            String value = ilike.MatchMode.ToMatchString(ilike.Value);
+
+            if (Parameterized)
+                sb.Append(RegisterParam(value));
+            else
+                sb.Append("'").Append(value).Append("'");
+
+            return sb.ToString();
         }
 
         public String ToSqlString(InExpression inexp)
@@ -397,6 +410,12 @@ namespace LX.EasyDb.Criterion
         public new ICriteria<T> AddOrder(Order order)
         {
             base.AddOrder(order);
+            return this;
+        }
+
+        public new ICriteria<T> SetProjection(IProjection projection)
+        {
+            base.SetProjection(projection);
             return this;
         }
 
