@@ -379,7 +379,7 @@ namespace LX.EasyDb
 
         #region Mapped
 
-        private static readonly Type mapType = typeof(IDictionary<String, Object>);
+        private static readonly Type mapType = typeof(SqlMapper.DapperRow);
 
         private static IEnumerable<T> QueryInternal<T>(System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, IConnectionFactorySupport factory)
         {
@@ -426,7 +426,7 @@ namespace LX.EasyDb
                 Int32 hash = GetColumnHash(reader);
                 if (tuple.Func == null || tuple.Hash != hash)
                 {
-                    tuple = cache.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, table, reader, 0, -1, false));
+                    tuple = cache.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, reader, 0, -1, false, table));
                     SetQueryCache(identity, cache);
                 }
 
@@ -611,7 +611,7 @@ namespace LX.EasyDb
             }
         }
 
-        static Func<IDataReader, Object> GetDeserializer(Type type, Mapping.Table table, IDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing)
+        static Func<IDataReader, Object> GetDeserializer(Type type, IDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing, Mapping.Table table)
         { 
 #if NET20
             if (type == typeof(Object)
@@ -629,11 +629,12 @@ namespace LX.EasyDb
             if (!(SqlMapper.HasDbType(type) || type.IsEnum ||  type.FullName == SqlMapper.LinqBinary ||
                (type.IsValueType && (underlyingType = Nullable.GetUnderlyingType(type)) != null && underlyingType.IsEnum)))
             {
-                return SqlMapper.GetTypeDeserializer(type, reader, table, startBound, length, returnNullIfFirstMissing);
+                return SqlMapper.GetTypeDeserializer(type, reader, startBound, length, returnNullIfFirstMissing);
             }
             return SqlMapper.GetStructDeserializer(type, underlyingType ?? type, startBound);
         }
 
+#if NET20
         static Func<IDataReader, Object> GetDictionaryDeserializer(Mapping.Table table, IDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing)
         {
             var fieldCount = reader.FieldCount;
@@ -700,6 +701,7 @@ namespace LX.EasyDb
                 return obj;
             };
         }
+#endif
 
         #endregion
 

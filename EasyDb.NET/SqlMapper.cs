@@ -644,7 +644,7 @@ namespace Dapper
             }
         }
 
-#if false
+#if !NET20
 #if CSHARP30
         /// <summary>
         /// Execute parameterized SQL  
@@ -2100,6 +2100,95 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                         .Select(p => p.GetGetMethod()).First();
 #endif
 
+        static ITypeMapRegistry _typeMapRegistry;
+
+        /// <summary>
+        /// Gets or sets the type mapping registry.
+        /// </summary>
+        public static ITypeMapRegistry TypeMapRegistry
+        {
+            get
+            {
+                if (_typeMapRegistry == null)
+                    _typeMapRegistry = DefaultTypeMapRegistry.Instance;
+                return _typeMapRegistry;
+            }
+            set { _typeMapRegistry = value; }
+        }
+
+        class DefaultTypeMapRegistry : ITypeMapRegistry
+        {
+            // use Hashtable to get free lockless reading
+            public static readonly DefaultTypeMapRegistry Instance = new DefaultTypeMapRegistry();
+            private readonly Hashtable _typeMaps = new Hashtable();
+
+            private DefaultTypeMapRegistry()
+            {
+            }
+
+            public ITypeMap GetTypeMap(Type type)
+            {
+                if (type == null) throw new ArgumentNullException("type");
+                var map = (ITypeMap)_typeMaps[type];
+                if (map == null)
+                {
+                    lock (_typeMaps)
+                    {   // double-checked; store this to avoid reflection next time we see this type
+                        // since multiple queries commonly use the same domain-entity/DTO/view-model type
+                        map = (ITypeMap)_typeMaps[type];
+                        if (map == null)
+                        {
+                            map = new DefaultTypeMap(type);
+                            _typeMaps[type] = map;
+                        }
+                    }
+                }
+                return map;
+            }
+
+            public void SetTypeMap(Type type, ITypeMap map)
+            {
+                if (type == null)
+                    throw new ArgumentNullException("type");
+
+                if (map == null || map is DefaultTypeMap)
+                {
+                    lock (_typeMaps)
+                    {
+                        _typeMaps.Remove(type);
+                    }
+                }
+                else
+                {
+                    lock (_typeMaps)
+                    {
+                        _typeMaps[type] = map;
+                    }
+                }
+
+                PurgeQueryCacheByType(type);
+            }
+        }
+
+        /// <summary>
+        /// Gets type-map for the given type
+        /// </summary>
+        /// <returns>Type map implementation, DefaultTypeMap instance if no override present</returns>
+        public static ITypeMap GetTypeMap(Type type)
+        {
+            return TypeMapRegistry.GetTypeMap(type);
+        }
+
+        /// <summary>
+        /// Set custom mapping for type deserializers
+        /// </summary>
+        /// <param name="type">Entity type to override</param>
+        /// <param name="map">Mapping rules impementation, null to remove custom map</param>
+        public static void SetTypeMap(Type type, ITypeMap map)
+        {
+            TypeMapRegistry.SetTypeMap(type, map);
+        }
+
         /// <summary>
         /// Internal use only
         /// </summary>
@@ -2112,9 +2201,9 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
         /// <returns></returns>
         public static Func<IDataReader, object> GetTypeDeserializer(
 #if CSHARP30
-            Type type, IDataReader reader, ITypeMap typeMap, int startBound, int length, bool returnNullIfFirstMissing
+            Type type, IDataReader reader, int startBound, int length, bool returnNullIfFirstMissing
 #else
-Type type, IDataReader reader, ITypeMap typeMap, int startBound = 0, int length = -1, bool returnNullIfFirstMissing = false
+Type type, IDataReader reader, int startBound = 0, int length = -1, bool returnNullIfFirstMissing = false
 #endif
 )
         {
@@ -2145,7 +2234,7 @@ Type type, IDataReader reader, ITypeMap typeMap, int startBound = 0, int length 
             var names = Enumerable.Range(startBound, length).Select(i => reader.GetName(i)).ToArray();
 #endif
 
-            //x ITypeMap typeMap = GetTypeMap(type);
+            ITypeMap typeMap = GetTypeMap(type);
 
             int index = startBound;
 
@@ -2162,8 +2251,8 @@ Type type, IDataReader reader, ITypeMap typeMap, int startBound = 0, int length 
                 for (int i = startBound; i < startBound + length; i++)
                 {
                     //x types[i - startBound] = reader.GetFieldType(i);
-                    IMemberMap member = typeMap.GetMember(names[i]);
-                    types[i - startBound] = (member == null) ? reader.GetFieldType(i) : typeMap.GetMember(names[i]).MemberType;
+                    IMemberMap member = typeMap.GetMember(names[i - startBound]);
+                    types[i - startBound] = (member == null) ? reader.GetFieldType(i) : member.MemberType;
                 }
 
                 if (type.IsValueType)
@@ -2611,7 +2700,7 @@ Type type, IDataReader reader, ITypeMap typeMap, int startBound = 0, int length 
                     break;
             }
         }
-#if false
+#if !NET20
         /// <summary>
         /// The grid reader provides interfaces for reading multiple result sets from a Dapper query 
         /// </summary>
@@ -3512,6 +3601,11 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
 
     public partial class SqlMapper
     {
+        public partial class DapperTable
+        { }
+
+        public partial class DapperRow
+        { }
     }
 
     public partial class DynamicParameters

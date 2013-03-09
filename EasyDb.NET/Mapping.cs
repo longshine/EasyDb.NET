@@ -12,8 +12,12 @@
 
 using System;
 using System.Collections.Generic;
+#if !NET20
+using System.Linq;
+#endif
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Dapper;
 
 namespace LX.EasyDb
@@ -21,10 +25,20 @@ namespace LX.EasyDb
     /// <summary>
     /// Provides classes and method for ORM.
     /// </summary>
-    public class Mapping
+    public class Mapping : SqlMapper.ITypeMapRegistry
     {
         private IDictionary<String, Table> _tables = new Dictionary<String, Table>();
         private INamingStrategy _namingStrategy = DefaultNamingStrategy.Instance;
+
+        SqlMapper.ITypeMap SqlMapper.ITypeMapRegistry.GetTypeMap(Type type)
+        {
+            return FindTable(type);
+        }
+
+        void SqlMapper.ITypeMapRegistry.SetTypeMap(Type type, SqlMapper.ITypeMap map)
+        {
+            SetTable(type, map as Table);
+        }
 
         /// <summary>
         /// Gets or sets the currently bound default catalog name.
@@ -138,12 +152,16 @@ namespace LX.EasyDb
         class DefaultNamingStrategy : INamingStrategy
         {
             public static DefaultNamingStrategy Instance = new DefaultNamingStrategy();
+            private static Regex reg = new Regex("[A-Z]+(?=[a-z0-9]|$)", RegexOptions.Compiled);
 
             private DefaultNamingStrategy() { }
 
             public String GetColumnName(String propertyName)
             {
-                return StringHelper.Unqualify(propertyName);
+                return reg.Replace(propertyName, delegate(Match match)
+                {
+                    return match.Index > 0 ? ("_" + match.Value.ToLowerInvariant()) : match.Value.ToLowerInvariant();
+                });
             }
 
             public String GetTableName(String typeName)
@@ -728,8 +746,11 @@ namespace LX.EasyDb
             SqlMapper.IMemberMap SqlMapper.ITypeMap.GetConstructorParameter(ConstructorInfo constructor, String columnName)
             {
                 var parameters = constructor.GetParameters();
-                
+#if NET20
                 return new SimpleMemberMap(columnName, Array.Find(parameters,  delegate(ParameterInfo p) { return String.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase); }));
+#else
+                return new SimpleMemberMap(columnName, parameters.FirstOrDefault(p => String.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase)));
+#endif
             }
 
             /// <summary>

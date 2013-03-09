@@ -11,6 +11,7 @@
 //
 
 using System;
+using Dapper;
 
 namespace LX.EasyDb
 {
@@ -67,6 +68,7 @@ namespace LX.EasyDb
         public ConnectionFactory(System.Data.Common.DbProviderFactory factory)
         {
             _factory = factory;
+            SqlMapper.TypeMapRegistry = _mapping;
         }
 
         /// <summary>
