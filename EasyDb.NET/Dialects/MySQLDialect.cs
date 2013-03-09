@@ -25,7 +25,7 @@ namespace LX.EasyDb.Dialects
         /// </summary>
         public MySQLDialect()
         {
-            RegisterColumnType(DbType.Identity, "int");
+            RegisterColumnType(DbType.Identity, "bigint");
             RegisterColumnType(DbType.Boolean, "bit");
             RegisterColumnType(DbType.Int64, "bigint");
             RegisterColumnType(DbType.UInt64, "bigint");

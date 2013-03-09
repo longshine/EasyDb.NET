@@ -28,7 +28,7 @@ namespace LX.EasyDb
     public class Mapping : SqlMapper.ITypeMapRegistry
     {
         private IDictionary<String, Table> _tables = new Dictionary<String, Table>();
-        private INamingStrategy _namingStrategy = DefaultNamingStrategy.Instance;
+        private INamingStrategy _namingStrategy;
 
         SqlMapper.ITypeMap SqlMapper.ITypeMapRegistry.GetTypeMap(Type type)
         {
@@ -38,6 +38,20 @@ namespace LX.EasyDb
         void SqlMapper.ITypeMapRegistry.SetTypeMap(Type type, SqlMapper.ITypeMap map)
         {
             SetTable(type, map as Table);
+        }
+
+        /// <summary>
+        /// Gets or set the naming strategy used by the mapping.
+        /// </summary>
+        public INamingStrategy NamingStrategy
+        {
+            get
+            {
+                if (_namingStrategy == null)
+                    _namingStrategy = new DefaultNamingStrategy();
+                return _namingStrategy;
+            }
+            set { _namingStrategy = value; }
         }
 
         /// <summary>
@@ -78,7 +92,7 @@ namespace LX.EasyDb
                     table = FindTable(GetTypeName(type));
                     if (table == null)
                     {
-                        table = new Table(type, _namingStrategy);
+                        table = new Table(type, NamingStrategy);
                         _tables[GetTypeName(type)] = table;
                     }
                 }
@@ -120,7 +134,7 @@ namespace LX.EasyDb
         /// <param name="phantomType">the type which contains mapping definition</param>
         public void Phantom(Type realType, Type phantomType)
         {
-            Table table = new Table(phantomType, _namingStrategy);
+            Table table = new Table(phantomType, NamingStrategy);
             table.Phantom(realType);
             SetTable(realType, table);
         }
@@ -149,24 +163,30 @@ namespace LX.EasyDb
             String GetTableName(String typeName);
         }
 
-        class DefaultNamingStrategy : INamingStrategy
+        /// <summary>
+        /// Default naming strategy that converts both table and columns to lower case,
+        /// separating each word with an underscore.
+        /// </summary>
+        public class DefaultNamingStrategy : INamingStrategy
         {
-            public static DefaultNamingStrategy Instance = new DefaultNamingStrategy();
-            private static Regex reg = new Regex("[A-Z]+(?=[a-z0-9]|$)", RegexOptions.Compiled);
+            private Regex reg = new Regex("[A-Z]+(?=[a-z0-9]|$)", RegexOptions.Compiled);
 
-            private DefaultNamingStrategy() { }
-
-            public String GetColumnName(String propertyName)
+            public virtual String GetColumnName(String propertyName)
             {
-                return reg.Replace(propertyName, delegate(Match match)
+                return Normalize(propertyName);
+            }
+
+            public virtual String GetTableName(String typeName)
+            {
+                return Normalize(StringHelper.Unqualify(typeName));
+            }
+
+            private String Normalize(String name)
+            {
+                return reg.Replace(name, delegate(Match match)
                 {
                     return match.Index > 0 ? ("_" + match.Value.ToLowerInvariant()) : match.Value.ToLowerInvariant();
                 });
-            }
-
-            public String GetTableName(String typeName)
-            {
-                return StringHelper.Unqualify(typeName);
             }
         }
 
