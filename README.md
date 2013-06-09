@@ -28,10 +28,10 @@ Usage
 
 ### Setup
 
-A **[IConnectionFactory] (IConnectionFactory)** or the static helper class
-**[EasyDbHelper] (EasyDbHelper)** is needed for open querying connections.
+A **[IConnectionFactory] (EasyDb.NET/IConnectionFactory.cs)** or the static helper class
+**[EasyDbHelper] (EasyDb.NET/EasyDbHelper.cs)** is needed for open querying connections.
 
-#### Using **[IConnectionFactory] (IConnectionFactory)**
+#### Using **[IConnectionFactory] (EasyDb.NET/IConnectionFactory.cs)**
 
 ```csharp
   IConnectionFactory factory;
@@ -59,7 +59,7 @@ Connections could be accquired from the factory then:
   IConnection connection = factory.OpenConnection();
 ```
 
-#### Or using the static **[EasyDbHelper] (EasyDbHelper)**
+#### Or using the static **[EasyDbHelper] (EasyDb.NET/EasyDbHelper.cs)**
 
 The EasyDbHelper should also be initialized before any use. By programming
 it will be like:
@@ -101,10 +101,11 @@ Then the static helper methods are ready to use.
   IConnection connection = EasyDbHelper.OpenConnection();
 ```
 
-### Query objects with **[IConnection] (IConnection)**
+### Query objects with **[IConnection] (EasyDb.NET/IConnection.cs)**
 
 Besides the conventional executing methods (ExecuteNonQuery, ExecuteScalar and
-ExecuteReader), IConnection provides 4 kinds of querying.
+ExecuteReader), IConnection provides 4 kinds of querying. Advanced features 
+and performance could be found at **[Readme-Dapper] (Readme-Dapper.md)**.
 
 #### Generic query
 
@@ -190,7 +191,7 @@ master/slave databases operations, which has been removed because lack of suppor
 License
 -------
 
-See [LICENSE] (LICENSE) for more info.
+See [License] (License.txt) for more info.
 
 Acknowledgements
 ----------------
