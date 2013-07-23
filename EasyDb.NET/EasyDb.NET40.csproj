@@ -61,6 +61,9 @@
     <Compile Include="Criterion\SimpleProjection.cs" />
     <Compile Include="DbType.cs" />
     <Compile Include="Dialect.cs" />
+    <Compile Include="Dialects\AbstractTransactSQLDialect.cs" />
+    <Compile Include="Dialects\Function\AbstractAnsiTrimEmulationFunction.cs" />
+    <Compile Include="Dialects\Function\AnsiTrimEmulationFunction.cs" />
     <Compile Include="Dialects\Function\CastFunction.cs" />
     <Compile Include="Dialects\Function\ISQLFunction.cs" />
     <Compile Include="Dialects\Function\NoArgSQLFunction.cs" />
@@ -72,6 +75,8 @@
     <Compile Include="Dialects\MySQLDialect.cs" />
     <Compile Include="Dialects\PostgreSQLDialect.cs" />
     <Compile Include="Dialects\SQLiteDialect.cs" />
+    <Compile Include="Dialects\SQLServer2008Dialect.cs" />
+    <Compile Include="Dialects\SQLServerDialect.cs" />
     <Compile Include="EasyDbHelper.cs" />
     <Compile Include="Enumerable.cs" />
     <Compile Include="IConnectionFactory.cs" />
