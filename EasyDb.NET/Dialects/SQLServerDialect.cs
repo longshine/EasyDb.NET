@@ -52,13 +52,12 @@ namespace LX.EasyDb.Dialects
             {
                 if (String.IsNullOrEmpty(order))
                     throw new ArgumentException("An order should be specified for paging query.", "order");
-                sql = new StringBuilder(sql.Length + 8)
+                sql = new StringBuilder(sql.Length + order.Length + 9)
                     .Append(sql)
                     .Append(" ")
                     .Append(order)
                     .Insert(GetAfterSelectInsertPoint(sql), " TOP " + (limit + offset))
                     .ToString();
-                StringBuilder sb = new StringBuilder();
                 String anotherOrderby = order.ToUpperInvariant();
                 if (anotherOrderby.Contains(" DESC"))
                     anotherOrderby = anotherOrderby.Replace(" DESC", " ASC");
@@ -66,20 +65,20 @@ namespace LX.EasyDb.Dialects
                     anotherOrderby = anotherOrderby.Replace(" ASC", " DESC");
                 else
                     anotherOrderby += " DESC";
-                sb.Append("SELECT * FROM (SELECT top ")
+                // NOTE This may not work properly when the total count of records < (limit + offset)
+                return new StringBuilder("SELECT * FROM (SELECT top ")
                     .Append(limit)
                     .Append(" * FROM (")
                     .Append(sql)
                     .Append(") t1 ")
                     .Append(anotherOrderby)
                     .Append(") t2 ")
-                    .Append(order);
-                // NOTE This may not work properly when the total count of records < (limit + offset)
-                return sb.ToString();
+                    .Append(order)
+                    .ToString();
             }
             else
             {
-                return new StringBuilder(sql.Length + 8)
+                return new StringBuilder(sql.Length + (order == null ? 0 : order.Length) + 9)
                     .Append(sql)
                     .Append(" ")
                     .Append(order)
