@@ -46,11 +46,19 @@ namespace LX.EasyDb.Dialects
 
         public override Char CloseQuote { get { return ']'; } }
 
-        public override String GetPaging(String sql, String order, Int32 total, Int32 offset)
+        public override String GetPaging(String sql, String order, Int32 limit, Int32 offset)
         {
-            StringBuilder sb = new StringBuilder();
             if (offset > 0)
             {
+                if (String.IsNullOrEmpty(order))
+                    throw new ArgumentException("An order should be specified for paging query.", "order");
+                sql = new StringBuilder(sql.Length + 8)
+                    .Append(sql)
+                    .Append(" ")
+                    .Append(order)
+                    .Insert(GetAfterSelectInsertPoint(sql), " TOP " + (limit + offset))
+                    .ToString();
+                StringBuilder sb = new StringBuilder();
                 String anotherOrderby = order.ToUpperInvariant();
                 if (anotherOrderby.Contains(" DESC"))
                     anotherOrderby = anotherOrderby.Replace(" DESC", " ASC");
@@ -58,25 +66,33 @@ namespace LX.EasyDb.Dialects
                     anotherOrderby = anotherOrderby.Replace(" ASC", " DESC");
                 else
                     anotherOrderby += " DESC";
-                sb.Append("SELECT * FROM (SELECT top ");
-                sb.Append(total);
-                sb.Append(" * FROM (SELECT top ");
-                sb.Append(total + offset);
-                sb.Append(" * FROM (");
-                sb.Append(sql);
-                sb.Append(") t1 ");
-                sb.Append(order);
-                sb.Append(") t2 ");
-                sb.Append(anotherOrderby);
-                sb.Append(") t3 ");
-                sb.Append(order);
+                sb.Append("SELECT * FROM (SELECT top ")
+                    .Append(limit)
+                    .Append(" * FROM (")
+                    .Append(sql)
+                    .Append(") t1 ")
+                    .Append(anotherOrderby)
+                    .Append(") t2 ")
+                    .Append(order);
+                // NOTE This may not work properly when the total count of records < (limit + offset)
                 return sb.ToString();
             }
             else
             {
-                // TODO better idea?
-                return "SELECT TOP " + total + " * from (" + sql + ") t " + (order ?? String.Empty);
+                return new StringBuilder(sql.Length + 8)
+                    .Append(sql)
+                    .Append(" ")
+                    .Append(order)
+                    .Insert(GetAfterSelectInsertPoint(sql), " TOP " + limit)
+                    .ToString();
             }
+        }
+
+        static Int32 GetAfterSelectInsertPoint(String sql)
+        {
+            Int32 selectIndex = sql.IndexOf("select", StringComparison.OrdinalIgnoreCase);
+            Int32 selectDistinctIndex = sql.IndexOf("select distinct", StringComparison.OrdinalIgnoreCase);
+            return selectIndex + (selectDistinctIndex == selectIndex ? 15 : 6);
         }
     }
 }
