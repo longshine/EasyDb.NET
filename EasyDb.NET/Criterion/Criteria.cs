@@ -93,18 +93,20 @@ namespace LX.EasyDb.Criterion
         public String ToSqlString()
         {
             String orderby = GenerateOrder();
-            String sql = GenerateSelect(orderby);
+            String sql = GenerateSelect();
             if (Total >= 0)
                 sql = _factory.Dialect.GetPaging(sql, orderby, Total, Offset);
+            else if (orderby != null)
+                sql += " " + orderby;
 #if DEBUG
-            Console.WriteLine(sql);
+            //Console.WriteLine(sql);
 #endif
             return sql;
         }
 
         public String ToSqlCountString()
         {
-            String select = GenerateSelect(null);
+            String select = GenerateSelect();
             StringBuilder sbSql = StringHelper.CreateBuilder()
                  .Append("SELECT COUNT(*) FROM (")
                  .Append(select)
@@ -112,7 +114,7 @@ namespace LX.EasyDb.Criterion
             return sbSql.ToString();
         }
 
-        private String GenerateSelect(String order)
+        private String GenerateSelect()
         {
             StringBuilder sbSql = StringHelper.CreateBuilder();
 
@@ -133,9 +135,6 @@ namespace LX.EasyDb.Criterion
             if (_projection != null && _projection.Grouped)
                 sbSql.Append(" GROUP BY ").Append(_projection.ToGroupString(this));
 
-            if (order != null)
-                sbSql.Append(order);
-
             return sbSql.ToString();
         }
 
@@ -144,7 +143,7 @@ namespace LX.EasyDb.Criterion
             if (_orders.Count > 0)
             {
                 StringBuilder sb = StringHelper.CreateBuilder()
-                    .Append(" ORDER BY ");
+                    .Append("ORDER BY ");
                 StringHelper.AppendItemsWithSeperator(_orders, ",", delegate(Order order)
                 {
                     sb.Append(order.Render(this));

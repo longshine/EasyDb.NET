@@ -139,9 +139,10 @@ namespace LX.EasyDb.Dialects
         /// </summary>
         public override String GetPaging(String sql, String order, Int32 total, Int32 offset)
         {
-            StringBuilder sb = StringHelper.CreateBuilder()
-                .Append(sql)
-                .Append(" LIMIT ")
+            StringBuilder sb = new StringBuilder(sql);
+            if (!String.IsNullOrEmpty(order))
+                sb.Append(" ").Append(order);
+            sb.Append(" LIMIT ")
                 .Append(total);
             if (offset > 0)
             {
