@@ -307,8 +307,12 @@ namespace LX.EasyDb
                 Column column = new Column();
 
                 column.ColumnName = (colAttr == null || String.IsNullOrEmpty(colAttr.Name)) ? namingStrategy.GetColumnName(mi.Name) : colAttr.Name;
-                if (colAttr != null && colAttr.DbType != DbType.Empty)
-                    column.DbType = colAttr.DbType;
+                if (colAttr != null)
+                {
+                    if (colAttr.DbType != DbType.Empty)
+                        column.DbType = colAttr.DbType;
+                    column.Updatable = colAttr.Updatable;
+                }
 
                 if (ReflectHelper.HasAttribute<PrimaryKeyAttribute>(mi))
                 {
@@ -632,6 +636,8 @@ namespace LX.EasyDb
                 {
                     if (HasPrimaryKey && PrimaryKey.ContainsColumn(column))
                         return false;
+                    if (!column.Updatable)
+                        return false;
                     sbSql.Append(column.GetQuotedName(dialect))
                         .Append(" = ").Append(dialect.ParamPrefix)
                         .Append(column.FieldName);
@@ -803,6 +809,7 @@ namespace LX.EasyDb
             public Column()
             {
                 DbType = DbType.Empty;
+                Updatable = true;
                 Nullable = true;
                 Length = DEFAULT_LENGTH;
                 Precision = DEFAULT_PRECISION;
@@ -830,6 +837,11 @@ namespace LX.EasyDb
             /// Gets or sets the type of this column.
             /// </summary>
             public DbType DbType { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicates if this column should be included where updating entities.
+            /// </summary>
+            public Boolean Updatable { get; set; }
 
             /// <summary>
             /// Gets or sets the member info associated with this column.
@@ -1360,6 +1372,7 @@ namespace LX.EasyDb
             public ColumnAttribute()
             {
                 DbType = DbType.Empty;
+                Updatable = true;
             }
             /// <summary>
             /// Gets or sets the name of this column.
@@ -1369,6 +1382,10 @@ namespace LX.EasyDb
             /// Gets or sets the type of this column.
             /// </summary>
             public DbType DbType { get; set; }
+            /// <summary>
+            /// Gets or sets a value indicates if this column should be included where updating entities.
+            /// </summary>
+            public Boolean Updatable { get; set; }
         }
 
         /// <summary>
