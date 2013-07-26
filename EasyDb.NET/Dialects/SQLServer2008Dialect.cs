@@ -17,7 +17,7 @@ namespace LX.EasyDb.Dialects
     /// <summary>
     /// A dialect for Microsoft SQL Server 2008 with JDBC Driver 3.0 and above.
     /// </summary>
-    public class SQLServer2008Dialect : SQLServerDialect
+    public class SQLServer2008Dialect : SQLServer2005Dialect
     {
         /// <summary>
         /// </summary>
