@@ -77,6 +77,7 @@
     <Compile Include="Dialects\SQLiteDialect.cs" />
     <Compile Include="Dialects\SQLServer2005Dialect.cs" />
     <Compile Include="Dialects\SQLServer2008Dialect.cs" />
+    <Compile Include="Dialects\SQLServer2012Dialect.cs" />
     <Compile Include="Dialects\SQLServerDialect.cs" />
     <Compile Include="EasyDbHelper.cs" />
     <Compile Include="Enumerable.cs" />
