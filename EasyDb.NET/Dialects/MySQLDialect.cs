@@ -38,6 +38,7 @@ namespace LX.EasyDb.Dialects
             RegisterColumnType(DbType.Date, "date");
             RegisterColumnType(DbType.Time, "time");
             RegisterColumnType(DbType.DateTime, "datetime");
+            RegisterColumnType(DbType.Binary, "blob");
             //RegisterColumnType(Types.VARBINARY, "longblob");
             //RegisterColumnType(Types.VARBINARY, 16777215, "mediumblob");
             //RegisterColumnType(Types.VARBINARY, 65535, "blob");
