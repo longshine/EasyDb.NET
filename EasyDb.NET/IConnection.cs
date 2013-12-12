@@ -390,7 +390,11 @@ namespace LX.EasyDb
 
         #region Mapped
 
+#if NET20
+        private static readonly Type mapType = typeof(IDictionary<String, Object>);
+#else
         private static readonly Type mapType = typeof(SqlMapper.DapperRow);
+#endif
 
         private static IEnumerable<T> QueryInternal<T>(System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, IConnectionFactorySupport factory)
         {
