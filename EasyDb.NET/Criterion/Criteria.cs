@@ -15,21 +15,33 @@ namespace LX.EasyDb.Criterion
         private IProjection _projection;
         private List<Order> _orders = new List<Order>();
         private Dictionary<String, Object> _params = new Dictionary<String, Object>();
-        private Mapping.Table _table;
+        private readonly Mapping.Table _table;
+        private readonly Type _type;
+        private readonly String _entity;
 
         public Int32 Offset { get; set; }
         public Int32 Total { get; set; }
-        public Type Type { get; private set; }
 
         public Criteria(Type type, IConnection connection, IConnectionFactorySupport factory)
+            : this(factory.Mapping.FindTable(type), connection, factory)
         {
-            _table = factory.Mapping.FindTable(type);
+            _type = type;
+        }
+
+        public Criteria(String entity, IConnection connection, IConnectionFactorySupport factory)
+            : this(factory.Mapping.FindTable(entity), connection, factory)
+        {
+            _entity = entity;
+        }
+
+        private Criteria(Mapping.Table table, IConnection connection, IConnectionFactorySupport factory)
+        {
+            _table = table;
             _connection = connection;
             _factory = factory;
             Parameterized = true;
             Total = -1;
             Offset = 0;
-            Type = type;
         }
 
         public Boolean Parameterized { get; set; }
@@ -77,7 +89,10 @@ namespace LX.EasyDb.Criterion
         {
             Total = total;
             Offset = offset;
-            return Enumerable.ToList(_connection.Query(Type, ToSqlString(), Parameters));
+            if (_type != null)
+                return Enumerable.ToList(_connection.Query(_type, ToSqlString(), Parameters));
+            else
+                return Enumerable.ToList(_connection.Query(_entity, ToSqlString(), Parameters));
         }
 
         public Int32 Count()

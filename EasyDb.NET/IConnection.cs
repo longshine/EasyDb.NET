@@ -87,6 +87,12 @@ namespace LX.EasyDb
         /// <returns>a <see cref="LX.EasyDb.ICriteria"/> to query entities</returns>
         ICriteria CreateCriteria(Type type);
         /// <summary>
+        /// Creates a criteria query.
+        /// </summary>
+        /// <param name="entity">the entity</param>
+        /// <returns>a <see cref="LX.EasyDb.ICriteria"/> to query entities</returns>
+        ICriteria CreateCriteria(String entity);
+        /// <summary>
         /// Commits the transaction.
         /// </summary>
         void CommitTransaction();
@@ -375,6 +381,11 @@ namespace LX.EasyDb
         public ICriteria CreateCriteria(Type type)
         {
             return new Criterion.Criteria(type, this, Factory);
+        }
+
+        public ICriteria CreateCriteria(String entity)
+        {
+            return new Criterion.Criteria(entity, this, Factory);
         }
 
         #region Mapped

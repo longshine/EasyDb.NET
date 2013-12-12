@@ -110,18 +110,28 @@ namespace LX.EasyDb
             if (type == null)
                 throw new ArgumentNullException("type");
 
+            SetTable(GetTypeName(type), table);
+        }
+
+        /// <summary>
+        /// Sets a table mapped with the specified entity.
+        /// </summary>
+        /// <param name="type">the entity to map</param>
+        /// <param name="table">the mapping rules impementation, or null to remove custom map</param>
+        public void SetTable(String entity, Table table)
+        {
             if (table == null)
             {
                 lock (_tables)
                 {
-                    _tables.Remove(GetTypeName(type));
+                    _tables.Remove(entity);
                 }
             }
             else
             {
                 lock (_tables)
                 {
-                    _tables[GetTypeName(type)] = table;
+                    _tables[entity] = table;
                 }
             }
         }
@@ -228,6 +238,12 @@ namespace LX.EasyDb
             private List<String> _checkConstraints = new List<String>();
             private readonly IEnumerable<FieldInfo> _fields;
             private readonly IEnumerable<PropertyInfo> _properties;
+
+            /// <summary>
+            /// Initializes an empty mapping table.
+            /// </summary>
+            public Table()
+            { }
 
             /// <summary>
             /// Initializes a mapping table.
