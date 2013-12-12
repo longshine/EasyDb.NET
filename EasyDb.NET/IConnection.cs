@@ -474,7 +474,7 @@ namespace LX.EasyDb
             {
                 ExecuteScalar("select 1 from " + table.GetQualifiedName(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema), null);
             }
-            catch (Exception)
+            catch (System.Data.Common.DbException)
             {
                 return false;
             }
@@ -485,28 +485,14 @@ namespace LX.EasyDb
         {
             if (table == null)
                 return;
-            try
-            {
-                ExecuteNonQuery(table.ToSqlCreate(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema));
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            ExecuteNonQuery(table.ToSqlCreate(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema));
         }
 
         private void DropTable(Mapping.Table table)
         {
             if (table == null)
                 return;
-            try
-            {
-                ExecuteNonQuery(table.ToSqlDrop(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema));
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            ExecuteNonQuery(table.ToSqlDrop(Factory.Dialect, Factory.Mapping.Catalog, Factory.Mapping.Schema));
         }
 
         private Int64 Insert(Mapping.Table table, Object item, Int32? commandTimeout = null)
