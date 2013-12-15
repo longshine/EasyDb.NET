@@ -277,7 +277,7 @@ namespace LX.EasyDb.Criterion
         /// <summary>
         /// Creates an expression that represents a function.
         /// </summary>
-        /// <param name="function">the name of the function</param>
+        /// <param name="func">the name of the function</param>
         /// <param name="args">the parameters</param>
         public static IExpression Function(String func, params IExpression[] args)
         {

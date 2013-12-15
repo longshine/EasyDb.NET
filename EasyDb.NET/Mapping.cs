@@ -116,7 +116,7 @@ namespace LX.EasyDb
         /// <summary>
         /// Sets a table mapped with the specified entity.
         /// </summary>
-        /// <param name="type">the entity to map</param>
+        /// <param name="entity">the entity to map</param>
         /// <param name="table">the mapping rules impementation, or null to remove custom map</param>
         public void SetTable(String entity, Table table)
         {
