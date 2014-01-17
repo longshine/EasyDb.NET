@@ -47,7 +47,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class AggregateProjection : SimpleProjection
+    public class AggregateProjection : SimpleProjection
     {
         public String FunctionName { get; private set; }
         public IExpression Expression { get; private set; }
@@ -76,7 +76,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class CountProjection : AggregateProjection
+    public class CountProjection : AggregateProjection
     {
         public CountProjection(IExpression expression)
             : base("count", expression)
@@ -103,7 +103,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class RowCountProjection : SimpleProjection
+    public class RowCountProjection : SimpleProjection
     {
         public static readonly IList<Object> Arguments = new List<Object>(new String[] { "*" });
 
@@ -118,7 +118,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class PropertyProjection : SimpleProjection
+    public class PropertyProjection : SimpleProjection
     {
         private Boolean _grouped;
 
@@ -153,7 +153,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class ExpressionProjection : IProjection
+    public class ExpressionProjection : IProjection
     {
         public ExpressionProjection(IExpression expression)
         {
@@ -180,7 +180,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class Distinct : IProjection
+    public class Distinct : IProjection
     {
         private readonly IProjection _projection;
 

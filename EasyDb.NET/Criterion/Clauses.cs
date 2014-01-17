@@ -345,7 +345,7 @@ namespace LX.EasyDb.Criterion
 
     #region Leaf nodes
 
-    class FieldExpression : IExpression
+    public class FieldExpression : IExpression
     {
         public String Filed { get; private set; }
         public String Table { get; private set; }
@@ -374,7 +374,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class PropertyExpression : IExpression
+    public class PropertyExpression : IExpression
     {
         public PropertyExpression(String propertyName, String otherPropertyName, String op)
         {
@@ -398,7 +398,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class ValueExpression : IExpression
+    public class ValueExpression : IExpression
     {
         public Object Value { get; private set; }
 
@@ -421,7 +421,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class PlainExpression : IExpression
+    public class PlainExpression : IExpression
     {
         public String value { get; private set; }
 
@@ -445,7 +445,7 @@ namespace LX.EasyDb.Criterion
 
     #region Conditions
 
-    class BetweenExpression : IExpression
+    public class BetweenExpression : IExpression
     {
         public BetweenExpression(IExpression expression, IExpression lower, IExpression upper)
         {
@@ -477,7 +477,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class InExpression : IExpression
+    public class InExpression : IExpression
     {
         public IExpression Expression { get; private set; }
         public IEnumerable<IExpression> Values { get; private set; }
@@ -499,7 +499,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class LikeExpression : IExpression
+    public class LikeExpression : IExpression
     {
         public LikeExpression(IExpression expression, String value, MatchMode matchMode, String escapeChar, Boolean ignoreCase)
         {
@@ -535,7 +535,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class IlikeExpression : IExpression
+    public class IlikeExpression : IExpression
     {
         public IlikeExpression(IExpression expression, String value, MatchMode matchMode)
         {
@@ -563,7 +563,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class LogicalExpression : IExpression
+    public class LogicalExpression : IExpression
     {
         public IExpression Left { get; private set; }
         public IExpression Right { get; private set; }
@@ -587,7 +587,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class SimpleExpression : IExpression
+    public class SimpleExpression : IExpression
     {
         public IExpression Left { get; private set; }
         public IExpression Right { get; private set; }
@@ -611,7 +611,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class NullExpression : IExpression
+    public class NullExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -631,7 +631,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class NotNullExpression : IExpression
+    public class NotNullExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -651,7 +651,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    class NotExpression : IExpression
+    public class NotExpression : IExpression
     {
         public IExpression Expression { get; private set; }
 
@@ -718,7 +718,7 @@ namespace LX.EasyDb.Criterion
 
     #endregion
 
-    class Function : IExpression
+    public class Function : IExpression
     {
         public String FunctionName { get; private set; }
         public IExpression[] Arguments { get; private set; }

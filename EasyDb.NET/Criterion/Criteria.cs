@@ -451,7 +451,7 @@ namespace LX.EasyDb.Criterion
         }
     }
 
-    interface ICriteriaRender
+    public interface ICriteriaRender
     {
         String ToSqlString(BetweenExpression between);
         String ToSqlString(LikeExpression like);
