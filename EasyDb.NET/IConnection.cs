@@ -649,7 +649,7 @@ namespace LX.EasyDb
 
             return r =>
             {
-                IDictionary<String, Object> row = new Dictionary<String, Object>();
+                IDictionary<String, Object> row = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
                 for (var i = startBound; i < startBound + length; i++)
                 {
                     var tmp = r.GetValue(i);
