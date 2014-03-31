@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>EasyDb.NET by longshine</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>EasyDb.NET</h1>
+        <p>An Easy Database Helper (Typed Query &amp; Simple ORM) for .NET</p>
+
+        <p class="view"><a href="https://github.com/longshine/EasyDb.NET">View the Project on GitHub <small>longshine/EasyDb.NET</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/longshine/EasyDb.NET/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/longshine/EasyDb.NET/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/longshine/EasyDb.NET">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="easydbnet---an-easy-database-helper-typed-query--simple-orm-for-net" class="anchor" href="#easydbnet---an-easy-database-helper-typed-query--simple-orm-for-net"><span class="octicon octicon-link"></span></a>EasyDb.NET - An Easy Database Helper (Typed Query &amp; Simple ORM) for .NET</h1>
+
+<p>EasyDb.NET is a simple project that helps you with features:</p>
+
+<ul>
+<li>
+<strong>Easy</strong>. IDbConnection is extended by a new interface IConnection with 
+enhanced query methods. Similar code, different experience. Helper methods 
+may still be used to get rid of the repeating trivia such as opening and
+closing connections and make coding clean and simple.</li>
+<li>
+<strong>Cross-database</strong>. EasyDb.NET works across all .NET ADO providers. Most 
+times you don't need to concern details of DB specific differences since 
+there is the hibernate-like dialecting.</li>
+<li>
+<strong>Typed query</strong>. Query results can be mapped into strongly typed or dynamic
+objects. ORMs can also be customized with help of Mapping attributes.</li>
+<li>Support OO-style <strong>Criterion query</strong>.</li>
+<li>Other features from <a href="https://github.com/SamSaffron/dapper-dot-net"><strong>Dapper</strong></a>.
+EasyDb.NET is internally driven by Dapper, an amazing project by Sam Saffron.</li>
+<li>Support .NET 2.0, 3.0, 3.5, 4.0.</li>
+</ul><h2>
+<a name="build" class="anchor" href="#build"><span class="octicon octicon-link"></span></a>Build</h2>
+
+<p>Define a compile symbol NET20 to build for .NET 2.0, CSHARP30 for .NET 3.0.
+By default the project is targeted to .NET 3.5 and above.</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<h3>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h3>
+
+<p>A <strong><a href="EasyDb.NET/IConnectionFactory.cs">IConnectionFactory</a></strong> or the static helper class
+<strong><a href="EasyDb.NET/EasyDbHelper.cs">EasyDbHelper</a></strong> is needed for open querying connections.</p>
+
+<h4>
+<a name="using-iconnectionfactory" class="anchor" href="#using-iconnectionfactory"><span class="octicon octicon-link"></span></a>Using <strong><a href="EasyDb.NET/IConnectionFactory.cs">IConnectionFactory</a></strong>
+</h4>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">IConnectionFactory</span> <span class="n">factory</span><span class="p">;</span>
+
+  <span class="c1">// build factory with given DbProviderFactory and Dialect.</span>
+  <span class="n">factory</span> <span class="p">=</span> <span class="n">ConnectionFactoryBuilder</span><span class="p">.</span><span class="n">NewBuilder</span><span class="p">(</span>
+      <span class="n">System</span><span class="p">.</span><span class="n">Data</span><span class="p">.</span><span class="n">SQLite</span><span class="p">.</span><span class="n">SQLiteFactory</span><span class="p">.</span><span class="n">Instance</span><span class="p">,</span>
+      <span class="s">"Data Source=test.db;Pooling=true;FailIfMissing=false"</span><span class="p">,</span>
+      <span class="s">"SQLiteFactory"</span><span class="p">,</span>
+      <span class="k">new</span> <span class="nf">SQLiteDialect</span><span class="p">()</span>
+  <span class="p">).</span><span class="n">Build</span><span class="p">();</span>
+
+  <span class="c1">// or build from strings</span>
+  <span class="n">factory</span> <span class="p">=</span> <span class="n">ConnectionFactoryBuilder</span><span class="p">.</span><span class="n">NewBuilder</span><span class="p">(</span>
+      <span class="s">"mysql.data"</span><span class="p">,</span>
+      <span class="s">"Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;"</span><span class="p">,</span>
+      <span class="s">"MySQLFactory"</span><span class="p">,</span>
+      <span class="s">"LX.EasyDb.Dialects.MySQLDialect"</span>
+  <span class="p">).</span><span class="n">Build</span><span class="p">();</span>
+</pre></div>
+
+<p>Connections could be accquired from the factory then:</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">IConnection</span> <span class="n">connection</span> <span class="p">=</span> <span class="n">factory</span><span class="p">.</span><span class="n">OpenConnection</span><span class="p">();</span>
+</pre></div>
+
+<h4>
+<a name="or-using-the-static-easydbhelper" class="anchor" href="#or-using-the-static-easydbhelper"><span class="octicon octicon-link"></span></a>Or using the static <strong><a href="EasyDb.NET/EasyDbHelper.cs">EasyDbHelper</a></strong>
+</h4>
+
+<p>The EasyDbHelper should also be initialized before any use. By programming
+it will be like:</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">EasyDbHelper</span><span class="p">.</span><span class="n">Initialize</span><span class="p">(</span><span class="s">"mysql.data"</span><span class="p">,</span>
+      <span class="s">"Server=127.0.0.1;Uid=root;Pwd=asdf;Database=sample;"</span><span class="p">,</span>
+      <span class="s">"LX.EasyDb.Dialects.MySQLDialect"</span><span class="p">);</span>
+</pre></div>
+
+<p>Or by app configuration:</p>
+
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;configuration&gt;</span>
+  <span class="nt">&lt;configSections&gt;</span>
+    <span class="nt">&lt;section</span> <span class="na">name=</span><span class="s">"EasyDb"</span> <span class="na">type=</span><span class="s">"LX.EasyDb.Configuration.EasyDbConfiguration, EasyDb.NET"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;/configSections&gt;</span>
+
+  <span class="nt">&lt;EasyDb&gt;</span>
+    <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">"SampleSqlServer"</span> <span class="na">connectionString=</span><span class="s">"sqlServerConnStr"</span>
+      <span class="na">provider=</span><span class="s">"System.Data.SqlClient, System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;/EasyDb&gt;</span>
+
+  <span class="nt">&lt;connectionStrings&gt;</span>
+    <span class="nt">&lt;add</span> <span class="na">name=</span><span class="s">"sqlServerConnStr"</span> <span class="na">connectionString=</span><span class="s">"Data Source=localhost;Initial Catalog=Test;Integrated Security=True"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;/connectionStrings&gt;</span>
+<span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+<p>Then the static helper methods are ready to use.</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="kt">int</span> <span class="n">rowsAffected</span> <span class="p">=</span> <span class="n">EasyDbHelper</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">(</span><span class="n">sql</span><span class="p">);</span>
+
+  <span class="n">Object</span> <span class="n">result</span> <span class="p">=</span> <span class="n">EasyDbHelper</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">(</span><span class="n">sql</span><span class="p">);</span>
+
+  <span class="n">IDataReader</span> <span class="n">reader</span> <span class="p">=</span> <span class="n">EasyDbHelper</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">(</span><span class="n">sql</span><span class="p">);</span>
+
+  <span class="n">IConnection</span> <span class="n">connection</span> <span class="p">=</span> <span class="n">EasyDbHelper</span><span class="p">.</span><span class="n">OpenConnection</span><span class="p">();</span>
+</pre></div>
+
+<h3>
+<a name="query-objects-with-iconnection" class="anchor" href="#query-objects-with-iconnection"><span class="octicon octicon-link"></span></a>Query objects with <strong><a href="EasyDb.NET/IConnection.cs">IConnection</a></strong>
+</h3>
+
+<p>Besides the conventional executing methods (ExecuteNonQuery, ExecuteScalar and
+ExecuteReader), IConnection provides 4 kinds of querying. Advanced features 
+and performance could be found at <strong><a href="Readme-Dapper.md">Readme-Dapper</a></strong>.</p>
+
+<h4>
+<a name="generic-query" class="anchor" href="#generic-query"><span class="octicon octicon-link"></span></a>Generic query</h4>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">class</span> <span class="nc">User</span>
+  <span class="p">{</span>
+      <span class="k">public</span> <span class="n">Int32</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+      <span class="k">public</span> <span class="n">String</span> <span class="n">Username</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+      <span class="k">public</span> <span class="n">String</span> <span class="n">Password</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="k">new</span> <span class="n">User</span><span class="p">()</span> <span class="p">{</span> <span class="n">Username</span> <span class="p">=</span> <span class="s">"user"</span><span class="p">,</span> <span class="n">Password</span> <span class="p">=</span> <span class="s">"pass"</span> <span class="p">});</span>
+
+  <span class="n">User</span> <span class="n">user</span> <span class="p">=</span> <span class="n">connection</span><span class="p">.</span><span class="n">Find</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;(</span><span class="m">1</span><span class="p">);</span>
+</pre></div>
+
+<h4>
+<a name="entity-query" class="anchor" href="#entity-query"><span class="octicon octicon-link"></span></a>Entity query</h4>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">connection</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="s">"User"</span><span class="p">,</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span> <span class="p">{</span> <span class="n">Username</span> <span class="p">=</span> <span class="s">"user"</span><span class="p">,</span> <span class="n">Password</span> <span class="p">=</span> <span class="s">"pass"</span> <span class="p">});</span>
+
+  <span class="n">IDictionary</span><span class="p">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Object</span><span class="p">&gt;</span> <span class="n">obj</span> <span class="p">=</span> <span class="n">connection</span><span class="p">.</span><span class="n">Find</span><span class="p">(</span><span class="s">"User"</span><span class="p">,</span> <span class="m">1</span><span class="p">);</span>
+</pre></div>
+
+<h4>
+<a name="type-query" class="anchor" href="#type-query"><span class="octicon octicon-link"></span></a>Type query</h4>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">public</span> <span class="k">interface</span> <span class="n">IUser</span>
+  <span class="p">{</span>
+      <span class="n">Int32</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+      <span class="n">String</span> <span class="n">Username</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+      <span class="n">String</span> <span class="n">Password</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">connection</span><span class="p">.</span><span class="n">Insert</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IUser</span><span class="p">),</span> <span class="k">new</span> <span class="p">{</span> <span class="n">Username</span> <span class="p">=</span> <span class="s">"user"</span><span class="p">,</span> <span class="n">Password</span> <span class="p">=</span> <span class="s">"pass"</span> <span class="p">});</span>
+
+  <span class="n">Object</span> <span class="n">user</span> <span class="p">=</span> <span class="n">connection</span><span class="p">.</span><span class="n">Find</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IUser</span><span class="p">),</span> <span class="m">1</span><span class="p">);</span>
+</pre></div>
+
+<h4>
+<a name="criterion-query" class="anchor" href="#criterion-query"><span class="octicon octicon-link"></span></a>Criterion query</h4>
+
+<p>EasyDb.NET implements a set of hibernate-like criterion query interfaces, which
+allows OO style query.</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">User</span> <span class="n">user</span> <span class="p">=</span> <span class="n">connection</span><span class="p">.</span><span class="n">CreateCriteria</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;()</span>
+      <span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">Clauses</span><span class="p">.</span><span class="n">Eq</span><span class="p">(</span><span class="s">"id"</span><span class="p">,</span> <span class="n">id</span><span class="p">))</span>
+      <span class="p">.</span><span class="n">SingleOrDefault</span><span class="p">();</span>
+</pre></div>
+
+<h2>
+<a name="objectrelation-mapping" class="anchor" href="#objectrelation-mapping"><span class="octicon octicon-link"></span></a>Object/Relation Mapping</h2>
+
+<p>By default objects will be mapped to relational tables with the same names defined
+in classes and properties. EasyDb.NET providers a few attributes to customize the
+mapping.</p>
+
+<p>For example, the class User mentioned above will be mapped to the table "User" by
+default. To map it to the table "sample_users", add attributes as below:</p>
+
+<div class="highlight highlight-csharp"><pre><span class="na">  [Mapping.Table(Name = "sample_users")]</span>
+  <span class="k">class</span> <span class="nc">User</span>
+  <span class="p">{</span>
+<span class="na">      [Mapping.Column(Name = "id", DbType = DbType.Identity)]</span>
+<span class="na">      [Mapping.PrimaryKey]</span>
+      <span class="k">public</span> <span class="n">Int32</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">      [Mapping.Column(Name = "username")]</span>
+      <span class="k">public</span> <span class="n">String</span> <span class="n">Username</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">      [Mapping.Column(Name = "pwd")]</span>
+      <span class="k">public</span> <span class="n">String</span> <span class="n">Password</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="experimental---masterslave-mode" class="anchor" href="#experimental---masterslave-mode"><span class="octicon octicon-link"></span></a>Experimental - Master/Slave Mode</h2>
+
+<p>EasyDb.NET used to have a feature of multi-databases manipulation, support 
+master/slave databases operations, which has been removed because lack of support.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>See <a href="License.txt">License</a> for more info.</p>
+
+<h2>
+<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h2>
+
+<p>EasyDb.NET is internally driven by <a href="https://github.com/SamSaffron/dapper-dot-net"><strong>Dapper</strong></a>,
+an amazing object mapper for .Net by Sam Saffron. 
+Thanks to the author and the great job.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/longshine">longshine</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-44050658-3");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
