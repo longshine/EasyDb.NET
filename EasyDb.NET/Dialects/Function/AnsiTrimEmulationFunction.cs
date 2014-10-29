@@ -2,16 +2,26 @@
 
 namespace LX.EasyDb.Dialects.Function
 {
+    /// <summary>
+    /// </summary>
     public class AnsiTrimEmulationFunction : AbstractAnsiTrimEmulationFunction
     {
+        /// <summary/>
         public static readonly String LTRIM = "ltrim";
+        /// <summary/>
         public static readonly String RTRIM = "rtrim";
+        /// <summary/>
         public static readonly String REPLACE = "replace";
+        /// <summary/>
         public static readonly String SPACE_PLACEHOLDER = "${space}$";
 
+        /// <summary/>
         public static readonly String LEADING_SPACE_TRIM_TEMPLATE = LTRIM + "(?1)";
+        /// <summary/>
         public static readonly String TRAILING_SPACE_TRIM_TEMPLATE = RTRIM + "(?1)";
+        /// <summary/>
         public static readonly String BOTH_SPACE_TRIM_TEMPLATE = LTRIM + "(" + RTRIM + "(?1))";
+        /// <summary/>
         public static readonly String BOTH_SPACE_TRIM_FROM_TEMPLATE = LTRIM + "(" + RTRIM + "(?2))"; //skip the FROM keyword in params
 
         /// <summary>
@@ -97,10 +107,12 @@ namespace LX.EasyDb.Dialects.Function
         private readonly ISQLFunction trailingTrim;
         private readonly ISQLFunction bothTrim;
 
+        /// <summary/>
         public AnsiTrimEmulationFunction()
             : this(LTRIM, RTRIM, REPLACE)
         { }
 
+        /// <summary/>
         public AnsiTrimEmulationFunction(String ltrimFunctionName, String rtrimFunctionName, String replaceFunctionName)
         {
             leadingSpaceTrim = new SQLFunctionTemplate(

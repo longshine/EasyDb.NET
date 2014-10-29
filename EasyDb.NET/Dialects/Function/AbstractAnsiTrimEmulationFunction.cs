@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace LX.EasyDb.Dialects.Function
 {
+    /// <summary>
+    /// Abstract base class for ansi trim emulation functions.
+    /// </summary>
     public abstract class AbstractAnsiTrimEmulationFunction : ISQLFunction
     {
         /// <inheritdoc/>

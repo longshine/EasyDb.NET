@@ -330,6 +330,7 @@ namespace LX.EasyDb.Criterion
                 .ToString();
         }
 
+        [Obsolete]
         public String ToSqlString(From.Table table)
         {
             throw new NotImplementedException();
@@ -451,28 +452,95 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Renders criterion fragments.
+    /// </summary>
     public interface ICriteriaRender
     {
+        /// <summary>
+        /// Renders <see cref="BetweenExpression"/>.
+        /// </summary>
         String ToSqlString(BetweenExpression between);
+        /// <summary>
+        /// Renders <see cref="LikeExpression"/>.
+        /// </summary>
         String ToSqlString(LikeExpression like);
+        /// <summary>
+        /// Renders <see cref="IlikeExpression"/>.
+        /// </summary>
         String ToSqlString(IlikeExpression ilike);
+        /// <summary>
+        /// Renders <see cref="InExpression"/>.
+        /// </summary>
         String ToSqlString(InExpression inexp);
+        /// <summary>
+        /// Renders <see cref="Junction"/>.
+        /// </summary>
         String ToSqlString(Junction junction);
+        /// <summary>
+        /// Renders <see cref="LogicalExpression"/>.
+        /// </summary>
         String ToSqlString(LogicalExpression logicalExpression);
+        /// <summary>
+        /// Renders <see cref="NotExpression"/>.
+        /// </summary>
         String ToSqlString(NotExpression notExpression);
+        /// <summary>
+        /// Renders <see cref="NotNullExpression"/>.
+        /// </summary>
         String ToSqlString(NotNullExpression notNullExpression);
+        /// <summary>
+        /// Renders <see cref="NullExpression"/>.
+        /// </summary>
         String ToSqlString(NullExpression nullExpression);
+        /// <summary>
+        /// Renders <see cref="PlainExpression"/>.
+        /// </summary>
         String ToSqlString(PlainExpression plainExpression);
+        /// <summary>
+        /// Renders <see cref="ValueExpression"/>.
+        /// </summary>
         String ToSqlString(ValueExpression valueExpression);
+        /// <summary>
+        /// Renders <see cref="FieldExpression"/>.
+        /// </summary>
         String ToSqlString(FieldExpression fieldExpression);
+        /// <summary>
+        /// Renders <see cref="Order"/>.
+        /// </summary>
         String ToSqlString(Order order);
+        /// <summary>
+        /// Renders <see cref="From.Table"/>.
+        /// </summary>
+        [Obsolete]
         String ToSqlString(From.Table table);
+        /// <summary>
+        /// Renders <see cref="Function"/>.
+        /// </summary>
         String ToSqlString(Function function);
+        /// <summary>
+        /// Renders <see cref="SimpleExpression"/>.
+        /// </summary>
         String ToSqlString(SimpleExpression simpleExpression);
+        /// <summary>
+        /// Renders <see cref="PropertyExpression"/>.
+        /// </summary>
         String ToSqlString(PropertyExpression propertyExpression);
+        /// <summary>
+        /// Renders <see cref="AggregateProjection"/>.
+        /// </summary>
         String ToSqlString(AggregateProjection aggregateProjection);
+        /// <summary>
+        /// Renders <see cref="RowCountProjection"/>.
+        /// </summary>
         String ToSqlString(RowCountProjection projection);
+        /// <summary>
+        /// Renders <see cref="PropertyProjection"/>.
+        /// </summary>
         String ToSqlString(PropertyProjection projection);
+        /// <summary>
+        /// Renders <see cref="ExpressionProjection"/>.
+        /// </summary>
         String ToSqlString(ExpressionProjection projection);
     }
 }

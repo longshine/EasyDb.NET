@@ -284,11 +284,22 @@ namespace LX.EasyDb.Criterion
             return new Function(func, args);
         }
 
+        /// <summary>
+        /// Creates a from fragment.
+        /// </summary>
+        /// <param name="tableName">the target table name</param>
+        [Obsolete]
         public static From From(String tableName)
         {
             return From(tableName, null);
         }
 
+        /// <summary>
+        /// Creates a from fragment.
+        /// </summary>
+        /// <param name="tableName">the target table name</param>
+        /// <param name="alias">the alias</param>
+        [Obsolete]
         public static From From(String tableName, String alias)
         {
             return new From(new From.Table(tableName, alias));
@@ -345,15 +356,34 @@ namespace LX.EasyDb.Criterion
 
     #region Leaf nodes
 
+    /// <summary>
+    /// Represents a single field.
+    /// </summary>
     public class FieldExpression : IExpression
     {
+        /// <summary>
+        /// Gets the name of this field.
+        /// </summary>
         public String Filed { get; private set; }
+
+        /// <summary>
+        /// Gets the name of the table this field belongs to.
+        /// </summary>
         public String Table { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="fieldName">the name of the field</param>
         public FieldExpression(String fieldName)
             : this(fieldName, null)
         { }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="fieldName">the name of the field</param>
+        /// <param name="tableName">the name of the owner table</param>
         public FieldExpression(String fieldName, String tableName)
         {
             Filed = fieldName;
@@ -376,8 +406,17 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents an operation between two properties.
+    /// </summary>
     public class PropertyExpression : IExpression
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="propertyName">the name of the first property</param>
+        /// <param name="otherPropertyName">the name of the second property</param>
+        /// <param name="op">the operator</param>
         public PropertyExpression(String propertyName, String otherPropertyName, String op)
         {
             PropertyName = new FieldExpression(propertyName);
@@ -385,8 +424,19 @@ namespace LX.EasyDb.Criterion
             Op = op;
         }
 
+        /// <summary>
+        /// Gets the first property.
+        /// </summary>
         public IExpression PropertyName { get; private set; }
+        
+        /// <summary>
+        /// Gets the second property.
+        /// </summary>
         public IExpression OtherPropertyName { get; private set; }
+
+        /// <summary>
+        /// Gets the operator.
+        /// </summary>
         public String Op { get; private set; }
 
         /// <inheritdoc/>
@@ -402,10 +452,20 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a single value.
+    /// </summary>
     public class ValueExpression : IExpression
     {
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
         public Object Value { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="value">the value</param>
         public ValueExpression(Object value)
         {
             this.Value = value;
@@ -427,19 +487,29 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a plain SQL fragment.
+    /// </summary>
     public class PlainExpression : IExpression
     {
-        public String value { get; private set; }
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        public String Value { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="value">the value</param>
         public PlainExpression(String value)
         {
-            this.value = value;
+            this.Value = value;
         }
 
         /// <inheritdoc/>
         public override String ToString()
         {
-            return this.value;
+            return this.Value;
         }
 
         /// <inheritdoc/>
@@ -453,8 +523,17 @@ namespace LX.EasyDb.Criterion
 
     #region Conditions
 
+    /// <summary>
+    /// Represents a BETWEEN clause.
+    /// </summary>
     public class BetweenExpression : IExpression
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression">the expression to constrain</param>
+        /// <param name="lower">expression of the lower bound</param>
+        /// <param name="upper">expression of the upper bound</param>
         public BetweenExpression(IExpression expression, IExpression lower, IExpression upper)
         {
             Expression = expression;
@@ -462,10 +541,19 @@ namespace LX.EasyDb.Criterion
             Upper = upper;
         }
 
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
 
+        /// <summary>
+        /// Gets the upper-bound expression.
+        /// </summary>
         public IExpression Upper { get; private set; }
 
+        /// <summary>
+        /// Gets the lower-bound expression.
+        /// </summary>
         public IExpression Lower { get; private set; }
 
         /// <inheritdoc/>
@@ -487,11 +575,24 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents an IN clause.
+    /// </summary>
     public class InExpression : IExpression
     {
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
+
+        /// <summary>
+        /// Gets the values.
+        /// </summary>
         public IEnumerable<IExpression> Values { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
         public InExpression(IExpression expression, IEnumerable<IExpression> values)
         {
             Expression = expression;
@@ -511,8 +612,19 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a LIKE clause.
+    /// </summary>
     public class LikeExpression : IExpression
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression">the expression to be constrained</param>
+        /// <param name="value">the value</param>
+        /// <param name="matchMode">the <see cref="MatchMode"/></param>
+        /// <param name="escapeChar">the escape char</param>
+        /// <param name="ignoreCase">ignore case or not</param>
         public LikeExpression(IExpression expression, String value, MatchMode matchMode, String escapeChar, Boolean ignoreCase)
         {
             Expression = expression;
@@ -522,18 +634,48 @@ namespace LX.EasyDb.Criterion
             IgnoreCase = ignoreCase;
         }
 
+        /// <summary>
+        /// Instantiates with exact <see cref="MatchMode"/>, null escape char and case-sensitive.
+        /// </summary>
+        /// <param name="expression">the expression to be constrained</param>
+        /// <param name="value">the value</param>
         public LikeExpression(IExpression expression, String value)
             : this(expression, value, MatchMode.Exact, null, false)
         { }
 
+        /// <summary>
+        /// Instantiates with null escape char and case-sensitive.
+        /// </summary>
+        /// <param name="expression">the expression to be constrained</param>
+        /// <param name="value">the value</param>
+        /// <param name="matchMode">the <see cref="MatchMode"/></param>
         public LikeExpression(IExpression expression, String value, MatchMode matchMode)
             : this(expression, value, matchMode, null, false)
         { }
 
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
         public String Value { get; private set; }
+
+        /// <summary>
+        /// Gets the escape char.
+        /// </summary>
         public String EscapeChar { get; private set; }
+
+        /// <summary>
+        /// Checks if ignore case or not.
+        /// </summary>
         public Boolean IgnoreCase { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="MatchMode"/>.
+        /// </summary>
         public MatchMode MatchMode { get; private set; }
 
         /// <inheritdoc/>
@@ -549,8 +691,17 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents an ILIKE clause.
+    /// </summary>
     public class IlikeExpression : IExpression
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression">the expression to be constrained</param>
+        /// <param name="value">the value</param>
+        /// <param name="matchMode">the <see cref="MatchMode"/></param>
         public IlikeExpression(IExpression expression, String value, MatchMode matchMode)
         {
             Expression = expression;
@@ -558,12 +709,28 @@ namespace LX.EasyDb.Criterion
             MatchMode = matchMode;
         }
 
+        /// <summary>
+        /// Instantiates with exact <see cref="MatchMode"/>.
+        /// </summary>
+        /// <param name="expression">the expression to be constrained</param>
+        /// <param name="value">the value</param>
         public IlikeExpression(IExpression expression, String value)
             : this(expression, value, MatchMode.Exact)
         { }
 
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
         public String Value { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="MatchMode"/>.
+        /// </summary>
         public MatchMode MatchMode { get; private set; }
 
         /// <inheritdoc/>
@@ -579,12 +746,32 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a logical clause.
+    /// </summary>
     public class LogicalExpression : IExpression
     {
+        /// <summary>
+        /// Gets the left part of this logical clause.
+        /// </summary>
         public IExpression Left { get; private set; }
+
+        /// <summary>
+        /// Gets the right part of this logical clause.
+        /// </summary>
         public IExpression Right { get; private set; }
+
+        /// <summary>
+        /// Gets the operator of this logical clause.
+        /// </summary>
         public String Op { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="left">the lefty</param>
+        /// <param name="right">the righty</param>
+        /// <param name="op">the operator</param>
         public LogicalExpression(IExpression left, IExpression right, String op)
         {
             Left = left;
@@ -605,12 +792,35 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a simple expression.
+    /// <remarks>
+    /// TODO same as LogicalExpression?
+    /// </remarks>
+    /// </summary>
     public class SimpleExpression : IExpression
     {
+        /// <summary>
+        /// Gets the left part of this clause.
+        /// </summary>
         public IExpression Left { get; private set; }
+
+        /// <summary>
+        /// Gets the right part of this clause.
+        /// </summary>
         public IExpression Right { get; private set; }
+
+        /// <summary>
+        /// Gets the operator of this clause.
+        /// </summary>
         public String Op { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="left">the lefty</param>
+        /// <param name="right">the righty</param>
+        /// <param name="op">the operator</param>
         public SimpleExpression(IExpression left, IExpression right, String op)
         {
             Left = left;
@@ -631,10 +841,20 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents an IS NULL clause.
+    /// </summary>
     public class NullExpression : IExpression
     {
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression"></param>
         public NullExpression(IExpression expression)
         {
             Expression = expression;
@@ -653,10 +873,20 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents an IS NOT NULL clause.
+    /// </summary>
     public class NotNullExpression : IExpression
     {
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression"></param>
         public NotNullExpression(IExpression expression)
         {
             Expression = expression;
@@ -675,10 +905,20 @@ namespace LX.EasyDb.Criterion
         }
     }
 
+    /// <summary>
+    /// Represents a NOT clause.
+    /// </summary>
     public class NotExpression : IExpression
     {
+        /// <summary>
+        /// Gets the expression to be constrained.
+        /// </summary>
         public IExpression Expression { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="expression"></param>
         public NotExpression(IExpression expression)
         {
             Expression = expression;
@@ -701,10 +941,17 @@ namespace LX.EasyDb.Criterion
 
     #region Fragments
 
+    /// <summary>
+    /// Represents a FROM fragment.
+    /// </summary>
+    [Obsolete]
     public class From : IFragment
     {
         private IFragment Source;
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
         public From(IFragment from)
         {
             this.Source = from;
@@ -717,11 +964,25 @@ namespace LX.EasyDb.Criterion
             return null;
         }
 
+        /// <summary>
+        /// Represents a table.
+        /// </summary>
+        [Obsolete]
         public class Table : IFragment
         {
+            /// <summary>
+            /// Gets the name of this table.
+            /// </summary>
             public String Name { get; private set; }
+
+            /// <summary>
+            /// Gets the alias of this table.
+            /// </summary>
             public String Alias { get; private set; }
 
+            /// <summary>
+            /// Instantiates.
+            /// </summary>
             public Table(String name, String alias)
             {
                 this.Name = name;
@@ -747,11 +1008,26 @@ namespace LX.EasyDb.Criterion
 
     #endregion
 
+    /// <summary>
+    /// Represents a function.
+    /// </summary>
     public class Function : IExpression
     {
+        /// <summary>
+        /// Gets the name of this function.
+        /// </summary>
         public String FunctionName { get; private set; }
+
+        /// <summary>
+        /// Gets the arguments of this function.
+        /// </summary>
         public IExpression[] Arguments { get; private set; }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="name">the name of the function</param>
+        /// <param name="args">the arguments of the function</param>
         public Function(String name, IExpression[] args)
         {
             FunctionName = name;
