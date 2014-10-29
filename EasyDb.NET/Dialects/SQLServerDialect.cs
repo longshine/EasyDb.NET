@@ -42,10 +42,13 @@ namespace LX.EasyDb.Dialects
             RegisterFunction("trim", new AnsiTrimEmulationFunction());
         }
 
+        /// <inheritdoc/>
         public override Char OpenQuote { get { return '['; } }
 
+        /// <inheritdoc/>
         public override Char CloseQuote { get { return ']'; } }
 
+        /// <inheritdoc/>
         public override String GetPaging(String sql, String order, Int32 limit, Int32 offset)
         {
             if (offset > 0)

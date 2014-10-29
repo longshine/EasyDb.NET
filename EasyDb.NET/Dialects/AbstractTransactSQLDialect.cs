@@ -100,6 +100,7 @@ namespace LX.EasyDb.Dialects
             RegisterFunction("trim", new SQLFunctionTemplate(DbType.String, "ltrim(rtrim(?1))"));
         }
 
+        /// <inheritdoc/>
         public override String IdentityColumnString
         {
             get
@@ -108,6 +109,7 @@ namespace LX.EasyDb.Dialects
             }
         }
 
+        /// <inheritdoc/>
         public override String SelectIdentityString
         {
             get { return "select @@identity"; }

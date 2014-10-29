@@ -360,6 +360,7 @@ namespace LX.EasyDb.Criterion
             Table = tableName;
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             if (String.IsNullOrEmpty(Table))
@@ -368,6 +369,7 @@ namespace LX.EasyDb.Criterion
                 return Table + "." + Filed;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
@@ -387,11 +389,13 @@ namespace LX.EasyDb.Criterion
         public IExpression OtherPropertyName { get; private set; }
         public String Op { get; private set; }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return PropertyName + Op + OtherPropertyName;
@@ -407,11 +411,13 @@ namespace LX.EasyDb.Criterion
             this.Value = value;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             if (Value is String || Value is DateTime)
@@ -430,11 +436,13 @@ namespace LX.EasyDb.Criterion
             this.value = value;
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return this.value;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
@@ -460,11 +468,13 @@ namespace LX.EasyDb.Criterion
 
         public IExpression Lower { get; private set; }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return StringHelper.CreateBuilder()
@@ -488,11 +498,13 @@ namespace LX.EasyDb.Criterion
             Values = values;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return Expression + " in (" + StringHelper.ToString(Enumerable.Cast<Object>(Values)) + ')';
@@ -524,11 +536,13 @@ namespace LX.EasyDb.Criterion
         public Boolean IgnoreCase { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return Expression + " like " + MatchMode.ToMatchString(Value);
@@ -552,11 +566,13 @@ namespace LX.EasyDb.Criterion
         public String Value { get; private set; }
         public MatchMode MatchMode { get; private set; }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return Expression + " ilike " + MatchMode.ToMatchString(Value);
@@ -576,11 +592,13 @@ namespace LX.EasyDb.Criterion
             Op = op;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return "(" + Left + ' ' + Op + ' ' + Right + ")";
@@ -600,11 +618,13 @@ namespace LX.EasyDb.Criterion
             Op = op;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return "(" + Left + ' ' + Op + ' ' + Right + ")";
@@ -620,11 +640,13 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return Expression + " is null";
@@ -640,11 +662,13 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return Expression + " is not null";
@@ -660,11 +684,13 @@ namespace LX.EasyDb.Criterion
             Expression = expression;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return "not " + Expression;
@@ -684,6 +710,7 @@ namespace LX.EasyDb.Criterion
             this.Source = from;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             //return this.Source.ToSqlString(criteria);
@@ -701,11 +728,13 @@ namespace LX.EasyDb.Criterion
                 this.Alias = alias;
             }
 
+            /// <inheritdoc/>
             public String Render(ICriteria criteria)
             {
                 return (criteria as ICriteriaRender).ToSqlString(this);
             }
 
+            /// <inheritdoc/>
             public override String ToString()
             {
                 if (null == this.Alias || 0 == this.Alias.Length)
@@ -729,11 +758,13 @@ namespace LX.EasyDb.Criterion
             Arguments = args;
         }
 
+        /// <inheritdoc/>
         public String Render(ICriteria criteria)
         {
             return (criteria as ICriteriaRender).ToSqlString(this);
         }
 
+        /// <inheritdoc/>
         public override String ToString()
         {
             return FunctionName + "(" + StringHelper.ToString(Arguments) + ")";

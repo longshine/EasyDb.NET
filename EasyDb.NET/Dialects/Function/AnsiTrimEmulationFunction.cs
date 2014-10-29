@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LX.EasyDb.Dialects.Function
 {
@@ -149,36 +147,43 @@ namespace LX.EasyDb.Dialects.Function
             );
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveBothSpaceTrimFunction()
         {
             return bothSpaceTrim;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveBothSpaceTrimFromFunction()
         {
             return bothSpaceTrimFrom;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveLeadingSpaceTrimFunction()
         {
             return leadingSpaceTrim;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveTrailingSpaceTrimFunction()
         {
             return trailingSpaceTrim;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveBothTrimFunction()
         {
             return bothTrim;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveLeadingTrimFunction()
         {
             return leadingTrim;
         }
 
+        /// <inheritdoc/>
         protected override ISQLFunction ResolveTrailingTrimFunction()
         {
             return trailingTrim;

@@ -20,6 +20,7 @@ namespace LX.EasyDb.Dialects
     /// </summary>
     public class SQLServer2012Dialect : SQLServer2008Dialect
     {
+        /// <inheritdoc/>
         public override String GetPaging(String sql, String order, Int32 limit, Int32 offset)
         {
             StringBuilder sb = new StringBuilder(sql);

@@ -20,6 +20,7 @@ namespace LX.EasyDb.Dialects
     /// </summary>
     public class SQLServer2005Dialect : SQLServerDialect
     {
+        /// <inheritdoc/>
         public override String GetPaging(String sql, String order, Int32 limit, Int32 offset)
         {
             if (offset > 0)

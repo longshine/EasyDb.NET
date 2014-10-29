@@ -5,11 +5,13 @@ namespace LX.EasyDb.Dialects.Function
 {
     public abstract class AbstractAnsiTrimEmulationFunction : ISQLFunction
     {
+        /// <inheritdoc/>
         public DbType GetReturnType(DbType firstArgumentType)
         {
             return DbType.String;
         }
 
+        /// <inheritdoc/>
         public String Render(IList<Object> args, IConnectionFactory factory)
         {
             // According to both the ANSI-SQL and JPA specs, trim takes a variable number of parameters between 1 and 4.

@@ -6010,7 +6010,7 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
         { }
     }
 
-    public static class SqlMapperExtensions
+    internal static class SqlMapperExtensions
     {
         public interface IProxy
         {

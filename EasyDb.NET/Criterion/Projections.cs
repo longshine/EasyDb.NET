@@ -11,8 +11,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LX.EasyDb.Criterion
 {
@@ -37,6 +35,11 @@ namespace LX.EasyDb.Criterion
             return new Distinct(projection);
         }
 
+        /// <summary>
+        /// Creates a distinct projection for a property.
+        /// </summary>
+        /// <param name="propertyName">the property name</param>
+        /// <returns><see cref="IProjection"/></returns>
         public static IProjection Distinct(String propertyName)
         {
             return new Distinct(Property(propertyName));
