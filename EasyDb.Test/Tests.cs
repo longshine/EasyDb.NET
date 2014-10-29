@@ -13,6 +13,20 @@ namespace LX.EasyDb
     class Tests
     {
         IConnection connection = Program.GetOpenConnection();
+        String castIntegerType = "integer";
+        String lengthFunc = "length";
+
+        public Tests()
+        {
+            if (Program.factory.Dialect is Dialects.MySQLDialect)
+            {
+                castIntegerType = "signed";
+            }
+            else if (Program.factory.Dialect is Dialects.SQLServerDialect)
+            {
+                lengthFunc = "datalength";
+            }
+        }
 
         class Parent
         {
@@ -28,7 +42,7 @@ namespace LX.EasyDb
         public void ParentChildIdentityAssociations()
         {
             var lookup = new Dictionary<int, Parent>();
-            var parents = connection.Query<Parent, Child, Parent>(@"select 1 as `Id`, 1 as `Id` union all select 1,2 union all select 2,3 union all select 1,4 union all select 3,5",
+            var parents = connection.Query<Parent, Child, Parent>(String.Format(@"select 1 as {0}Id{1}, 1 as {0}Id{1} union all select 1,2 union all select 2,3 union all select 1,4 union all select 3,5", Program.factory.Dialect.OpenQuote, Program.factory.Dialect.CloseQuote),
                 (parent, child) =>
                 {
                     Parent found;
@@ -108,7 +122,6 @@ namespace LX.EasyDb
             Assert.IsEqualTo(gotException, false);
         }
 
-        //[ActiveTest]
         public void TestCriteria()
         {
             if (!connection.ExistTable<User>())
@@ -158,7 +171,7 @@ namespace LX.EasyDb
             });
 
             System.Threading.Thread.Sleep(100);
-            Assert.IsEqualTo(conn1, conn2);
+            Assert.IsNotEqualTo(conn1, conn2);
             Assert.IsNotEqualTo(conn1, conn3);
         }
 
@@ -263,7 +276,7 @@ namespace LX.EasyDb
         public void TestNoDefaultConstructor()
         {
             var guid = Guid.NewGuid();
-            NoDefaultConstructor nodef = Enumerable.FirstOrDefault(connection.Query<NoDefaultConstructor>("select i A1,  i b1, f f1, 'Easy' s1, @id G1 from (select CAST(NULL AS signed) i, CAST(NULL AS decimal) f) as t", new { Id = guid }));
+            NoDefaultConstructor nodef = Enumerable.First(connection.Query<NoDefaultConstructor>("select CAST(NULL AS integer) A1, CAST(NULL AS integer) b1, CAST(NULL AS real) f1, 'Easy' s1, @id G1", new { Id = guid }));
             Assert.IsEqualTo(nodef.A, 0);
             Assert.IsEqualTo(nodef.B, null);
             Assert.IsEqualTo(nodef.F, 0);
@@ -283,7 +296,7 @@ namespace LX.EasyDb
 
         public void TestNoDefaultConstructorWithEnum()
         {
-            NoDefaultConstructorWithEnum nodef = Enumerable.FirstOrDefault(connection.Query<NoDefaultConstructorWithEnum>("select i1 E1, i2 n1, i3 n2 from (select 2 i1, 5 i2, cast(NULL as signed) i3) as t"));
+            NoDefaultConstructorWithEnum nodef = Enumerable.First(connection.Query<NoDefaultConstructorWithEnum>("select cast(2 as smallint) E1, cast(5 as smallint) n1, cast(null as smallint) n2"));
             Assert.IsEqualTo(nodef.E, ShortEnum.Two);
             Assert.IsEqualTo(nodef.NE1, ShortEnum.Five);
             Assert.IsEqualTo(nodef.NE2, null);
@@ -293,11 +306,11 @@ namespace LX.EasyDb
 
         public void TestAbstractInheritance()
         {
-            var order = Enumerable.FirstOrDefault(connection.Query<AbstractInheritance.ConcreteOrder>("select 1 Internal,2 Protected,3 Public,4 Concrete"));
+            var order = Enumerable.First(connection.Query<AbstractInheritance.ConcreteOrder>("select 1 Internal,2 Protected,3 PublicVal,4 Concrete"));
 
             Assert.IsEqualTo(order.Internal, 1);
             Assert.IsEqualTo(order.ProtectedVal, 2);
-            Assert.IsEqualTo(order.Public, 3);
+            Assert.IsEqualTo(order.PublicVal, 3);
             Assert.IsEqualTo(order.Concrete, 4);
         }
 
@@ -333,7 +346,7 @@ namespace LX.EasyDb
 
         public void TestStructs()
         {
-            var car = Enumerable.FirstOrDefault(connection.Query<Car>("select 'Ford' Name, 21 Age, 2 Trap"));
+            var car = Enumerable.First(connection.Query<Car>("select 'Ford' Name, 21 Age, 2 Trap"));
             Assert.IsEqualTo(car.Age, 21);
             Assert.IsEqualTo(car.Name, "Ford");
             Assert.IsEqualTo((int)car.Trap, 2);
@@ -349,7 +362,7 @@ namespace LX.EasyDb
         public void TestEmptyClass()
         {
             var empty = Enumerable.FirstOrDefault(connection.Query<EmptyClass>("select null"));
-            Assert.IsNull(empty);
+            Assert.IsNotNull(empty);
         }
 
         public void SelectListInt()
@@ -359,9 +372,9 @@ namespace LX.EasyDb
 
         public void SelectBinary()
         {
-            Assert.IsSequenceEqualTo(Enumerable.FirstOrDefault(connection.Query<byte[]>("select cast(1 as binary(4))")), new byte[4] { 49, 0, 0, 0 });
+            Assert.IsSequenceEqualTo(Enumerable.First(connection.Query<byte[]>("select cast(1 as binary(4))")), new byte[4] { 0, 0, 0, 1 });
         }
-        
+
         public void PassInIntArray()
         {
             Assert.IsSequenceEqualTo(connection.Query<int>("select * from (select 1 as Id union all select 2 union all select 3) as X where Id in @Ids", new { Ids = new int[] { 1, 2, 3 } })
@@ -574,7 +587,7 @@ namespace LX.EasyDb
 
         public void TestDbString()
         {
-            var obj = Enumerable.FirstOrDefault(connection.QueryDirect("select length(@a) as a, length(@c) as c, length(@b) as b, length(@e) as e, length(@d) as d, length(@f) as f",
+            var obj = Enumerable.First(connection.QueryDirect(String.Format("select {0}(@a) as a, {0}(@c) as c, {0}(@b) as b, {0}(@e) as e, {0}(@d) as d, {0}(@f) as f", lengthFunc),
                 new
                 {
                     a = new DbString { Value = "abcde", IsFixedLength = true, Length = 10, IsAnsi = true },
@@ -995,7 +1008,7 @@ namespace LX.EasyDb
 
         public void TestWrongTypes_WithRightTypes()
         {
-            var item = Enumerable.Single(connection.Query<WrongTypes>("select 1 as A, 2.0 as B, 3 as C, cast(1 as signed) as D"));
+            var item = Enumerable.Single(connection.Query<WrongTypes>(String.Format("select 1 as A, 2.0 as B, 3 as C, cast(1 as {0}) as D", castIntegerType)));
             Assert.IsEqualTo(item.A, 1);
             Assert.IsEqualTo(item.B, 2.0);
             Assert.IsEqualTo(item.C, 3L);
@@ -1181,7 +1194,7 @@ end");
             {
                 internal int Internal { get; set; }
                 protected int Protected { get; set; }
-                public int Public { get; set; }
+                public int PublicVal { get; set; }
 
                 public int ProtectedVal { get { return Protected; } }
             }
