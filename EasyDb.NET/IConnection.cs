@@ -14,11 +14,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
 using System.Threading;
-using LX.EasyDb.Criterion;
 using Dapper;
 
 namespace LX.EasyDb
@@ -119,78 +118,17 @@ namespace LX.EasyDb
 
         public Int32 ExecuteNonQuery(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            IEnumerable multiExec = param as IEnumerable;
-            SqlMapper.Identity identity;
-            SqlMapper.CacheInfo info = null;
-
-            if (multiExec != null && !(multiExec is String))
-            {
-                Int32 total = 0;
-                Boolean first = true;
-                using (IDbCommand cmd = SqlMapper.SetupCommand(Connection, Transaction, sql, null, null, commandTimeout, commandType))
-                {
-                    String masterSql = null; 
-                    foreach (var obj in multiExec)
-                    {
-                        if (first)
-                        {
-                            masterSql = cmd.CommandText;
-                            first = false;
-                            identity = new SqlMapper.Identity(sql, cmd.CommandType, Connection, null, obj.GetType(), null);
-                            info = GetCacheInfo(identity);
-                        }
-                        else
-                        {
-                            cmd.CommandText = masterSql; // because we do magic replaces on "in" etc
-                            cmd.Parameters.Clear(); // current code is Add-tastic
-                        }
-                        info.ParamReader(cmd, obj);
-                        total += cmd.ExecuteNonQuery();
-                    }
-                }
-                return total;
-            }
-            else
-            {
-                // nice and simple
-                if (param != null)
-                {
-                    identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
-                    info = GetCacheInfo(identity);
-                }
-
-                return SqlMapper.ExecuteCommand(Connection, Transaction, sql, param == null ? null : info.ParamReader, param, commandTimeout, commandType);
-            }
+            return SqlMapper.Execute(Connection, sql, param, Transaction, commandTimeout, commandType);
         }
 
         public Object ExecuteScalar(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            SqlMapper.CacheInfo info = null;
-            if (param != null)
-            {
-                SqlMapper.Identity identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
-                info = GetCacheInfo(identity);
-            }
-
-            using (IDbCommand cmd = SqlMapper.SetupCommand(Connection, Transaction, sql, param == null ? null : info.ParamReader, param, commandTimeout, commandType))
-            {
-                return cmd.ExecuteScalar();
-            }
+            return SqlMapper.ExecuteScalar(Connection, sql, param, Transaction, commandTimeout, commandType);
         }
 
         public IDataReader ExecuteReader(String sql, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null, CommandBehavior? behavior = null)
         {
-            SqlMapper.CacheInfo info = null;
-            if (param != null)
-            {
-                SqlMapper.Identity identity = new SqlMapper.Identity(sql, commandType, Connection, null, param.GetType(), null);
-                info = GetCacheInfo(identity);
-            }
-
-            using (IDbCommand cmd = SqlMapper.SetupCommand(Connection, Transaction, sql, param == null ? null : info.ParamReader, param, commandTimeout, commandType))
-            {
-                return cmd.ExecuteReader(behavior.HasValue ? behavior.Value : CommandBehavior.Default);
-            }
+            return SqlMapper.ExecuteReader(Connection, sql, param, Transaction, commandTimeout, commandType);
         }
 
         #endregion
@@ -349,7 +287,7 @@ namespace LX.EasyDb
 
         public IEnumerable<IDictionary<String, Object>> QueryDirect(String sql, Object param = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            return Query<IDictionary<String, Object>>(sql, param, buffered, commandTimeout, commandType);
+            return QueryInternal((Mapping.Table)null, Connection, sql, param, Transaction, commandType, commandTimeout, Factory);
         }
 
         /// <summary>
@@ -364,10 +302,17 @@ namespace LX.EasyDb
         /// <returns><see cref="System.Data.IDbDataAdapter"/></returns>
         public IDbDataAdapter CreateDataAdapter(String selectCommandText, Object param = null, Int32? commandTimeout = null, CommandType? commandType = null)
         {
-            var identity = new SqlMapper.Identity(selectCommandText, commandType, Connection, null, param == null ? null : param.GetType(), null);
-            var cache = GetCacheInfo(identity);
+            CommandDefinition command = new CommandDefinition(selectCommandText, param, Transaction, commandTimeout, commandType, CommandFlags.Buffered);
+
+            Action<IDbCommand, Object> paramReader = null;
+            if (param != null)
+            {
+                SqlMapper.Identity identity = new SqlMapper.Identity(command.CommandText, command.CommandType, Connection, null, param.GetType(), null);
+                paramReader = SqlMapper.GetCacheInfo(identity, command.Parameters, command.AddToCache).ParamReader;
+            }
+
             IDbDataAdapter ada = Factory.DbProviderFactory.CreateDataAdapter();
-            ada.SelectCommand = SqlMapper.SetupCommand(Connection, Transaction, selectCommandText, cache.ParamReader, param, commandTimeout, commandType);
+            ada.SelectCommand = command.SetupCommand(Connection, paramReader);
             return ada;
         }
 
@@ -399,29 +344,40 @@ namespace LX.EasyDb
         private static IEnumerable<T> QueryInternal<T>(System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, IConnectionFactorySupport factory)
         {
             Type type = typeof(T);
-            foreach (var item in QueryInternal(type, factory.Mapping.FindTable(type), connection, sql, param, transaction, commandType, commandTimeout))
-            {
-                yield return (T)item;
-            }
+            return QueryInternal<T>(type, factory.Mapping.FindTable(type), connection, sql, param, transaction, commandType, commandTimeout);
         }
 
         private static IEnumerable QueryInternal(Type type, System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, IConnectionFactorySupport factory)
         {
-            return QueryInternal(type == null ? mapType : type, type == null ? null : factory.Mapping.FindTable(type), connection, sql, param as object, transaction, commandType, commandTimeout);
+            return QueryInternal(type == null ? mapType : type, type == null ? null : factory.Mapping.FindTable(type), connection, sql, param, transaction, commandType, commandTimeout);
         }
 
         private static IEnumerable<IDictionary<String, Object>> QueryInternal(Mapping.Table table, System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout, IConnectionFactorySupport factory)
         {
-            foreach (var item in QueryInternal(mapType, table, connection, sql, param, transaction, commandType, commandTimeout))
+            return QueryInternal<IDictionary<String, Object>>(mapType, table, connection, sql, param, transaction, commandType, commandTimeout);
+        }
+
+        private static IEnumerable<T> QueryInternal<T>(Type type, Mapping.Table table, System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout)
+        {
+            var convertToType = Nullable.GetUnderlyingType(type) ?? type;
+            foreach (var val in QueryInternal(type, table, connection, sql, param, transaction, commandType, commandTimeout))
             {
-                yield return (IDictionary<String, Object>)item;
+                if (val == null || val is T)
+                {
+                    yield return (T)val;
+                }
+                else
+                {
+                    yield return (T)Convert.ChangeType(val, convertToType, CultureInfo.InvariantCulture);
+                }
             }
         }
 
         private static IEnumerable QueryInternal(Type type, Mapping.Table table, System.Data.IDbConnection connection, String sql, Object param, IDbTransaction transaction, CommandType? commandType, Int32? commandTimeout)
         {
+            var command = new CommandDefinition(sql, param, transaction, commandTimeout, commandType, CommandFlags.Buffered);
             var identity = new SqlMapper.Identity(sql, commandType, connection, type, param == null ? null : param.GetType(), null);
-            var cache = GetCacheInfo(identity);
+            var info = SqlMapper.GetCacheInfo(identity, param, command.AddToCache);
 
             IDbCommand cmd = null;
             IDataReader reader = null;
@@ -429,40 +385,43 @@ namespace LX.EasyDb
             Boolean wasClosed = connection.State == ConnectionState.Closed;
             try
             {
-                cmd = SqlMapper.SetupCommand(connection, transaction, sql, cache.ParamReader, param, commandTimeout, commandType);
+                cmd = command.SetupCommand(connection, info.ParamReader);
 
                 if (wasClosed) connection.Open();
-                reader = cmd.ExecuteReader(wasClosed ? CommandBehavior.CloseConnection : CommandBehavior.Default);
-                wasClosed = false;  // *if* the connection was closed and we got this far, then we now have a reader
-                                    // with the CloseConnection flag, so the reader will deal with the connection; we
-                                    // still need something in the "finally" to ensure that broken SQL still results
-                                    // in the connection closing itself
-                var tuple = cache.Deserializer;
-                Int32 hash = GetColumnHash(reader);
+                reader = cmd.ExecuteReader(wasClosed ? CommandBehavior.CloseConnection | CommandBehavior.SequentialAccess : CommandBehavior.SequentialAccess);
+                wasClosed = false; // *if* the connection was closed and we got this far, then we now have a reader
+                // with the CloseConnection flag, so the reader will deal with the connection; we
+                // still need something in the "finally" to ensure that broken SQL still results
+                // in the connection closing itself
+                var tuple = info.Deserializer;
+                int hash = SqlMapper.GetColumnHash(reader);
                 if (tuple.Func == null || tuple.Hash != hash)
                 {
-                    tuple = cache.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, reader, 0, -1, false, table));
-                    SetQueryCache(identity, cache);
+                    if (reader.FieldCount == 0) //https://code.google.com/p/dapper-dot-net/issues/detail?id=57
+                        yield break;
+                    tuple = info.Deserializer = new SqlMapper.DeserializerState(hash, GetDeserializer(type, reader, 0, -1, false, table));
+                    if (command.AddToCache) SqlMapper.SetQueryCache(identity, info);
                 }
 
                 var func = tuple.Func;
-
                 while (reader.Read())
                 {
                     yield return func(reader);
                 }
+                while (reader.NextResult()) { }
                 // happy path; close the reader cleanly - no
                 // need for "Cancel" etc
                 reader.Dispose();
                 reader = null;
+
+                command.OnCompleted();
             }
             finally
             {
                 if (reader != null)
                 {
-                    if (!reader.IsClosed)
-                        try { cmd.Cancel(); }
-                        catch { /* don't spol the existing exception */ }
+                    if (!reader.IsClosed) try { cmd.Cancel(); }
+                        catch { /* don't spoil the existing exception */ }
                     reader.Dispose();
                 }
                 if (wasClosed) connection.Close();
@@ -597,42 +556,24 @@ namespace LX.EasyDb
         #endregion
 
         #region Helper methods
-        
-        static Int32 GetColumnHash(IDataReader reader)
-        {
-            unchecked
-            {
-                Int32 colCount = reader.FieldCount, hash = colCount;
-                for (Int32 i = 0; i < colCount; i++)
-                {   // binding code is only interested in names - not types
-                    Object tmp = reader.GetName(i);
-                    hash = (hash * 31) + (tmp == null ? 0 : tmp.GetHashCode());
-                }
-                return hash;
-            }
-        }
 
         static Func<IDataReader, Object> GetDeserializer(Type type, IDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing, Mapping.Table table)
         { 
 #if NET20
             if (type == typeof(Object)
                 || type.IsAssignableFrom(typeof(Dictionary<String, Object>)))
+            {
                 return GetDictionaryDeserializer(table, reader, startBound, length, returnNullIfFirstMissing);
+            }
 #else
-            if (type == typeof(object)
+            // dynamic is passed in as Object ... by c# design
+            if (type == typeof(Object)
                 || type == typeof(SqlMapper.DapperRow))
             {
-                return SqlMapper.GetDapperRowDeserializer(reader, startBound, length, returnNullIfFirstMissing);
+                return GetDapperRowDeserializer(table, reader, startBound, length, returnNullIfFirstMissing);
             }
 #endif
-            
-            Type underlyingType = null;
-            if (!(SqlMapper.HasDbType(type) || type.IsEnum ||  type.FullName == SqlMapper.LinqBinary ||
-               (type.IsValueType && (underlyingType = Nullable.GetUnderlyingType(type)) != null && underlyingType.IsEnum)))
-            {
-                return SqlMapper.GetTypeDeserializer(type, reader, startBound, length, returnNullIfFirstMissing);
-            }
-            return SqlMapper.GetStructDeserializer(type, underlyingType ?? type, startBound);
+            return SqlMapper.GetDeserializer(type, reader, startBound, length, returnNullIfFirstMissing);
         }
 
 #if NET20
@@ -701,6 +642,68 @@ namespace LX.EasyDb
 
                 return obj;
             };
+        }
+#else
+        static Func<IDataReader, object> GetDapperRowDeserializer(Mapping.Table mt, IDataRecord reader, int startBound, int length, bool returnNullIfFirstMissing)
+        {
+            var fieldCount = reader.FieldCount;
+            if (length == -1)
+            {
+                length = fieldCount - startBound;
+            }
+
+            if (fieldCount <= startBound)
+            {
+                throw SqlMapper.MultiMapException(reader);
+            }
+
+            var effectiveFieldCount = Math.Min(fieldCount - startBound, length);
+
+            SqlMapper.DapperTable table = null;
+
+            return
+                r =>
+                {
+                    if (table == null)
+                    {
+                        string[] names = new string[effectiveFieldCount];
+                        for (int i = 0; i < effectiveFieldCount; i++)
+                        {
+                            names[i] = r.GetName(i + startBound);
+                            if (mt != null)
+                                names[i] = mt.GetFieldName(names[i]);
+                        }
+                        table = new SqlMapper.DapperTable(names);
+                    }
+
+                    var values = new object[effectiveFieldCount];
+
+                    if (returnNullIfFirstMissing)
+                    {
+                        values[0] = r.GetValue(startBound);
+                        if (values[0] is DBNull)
+                        {
+                            return null;
+                        }
+                    }
+
+                    if (startBound == 0)
+                    {
+                        r.GetValues(values);
+                        for (int i = 0; i < values.Length; i++)
+                            if (values[i] is DBNull) values[i] = null;
+                    }
+                    else
+                    {
+                        var begin = returnNullIfFirstMissing ? 1 : 0;
+                        for (var iter = begin; iter < effectiveFieldCount; ++iter)
+                        {
+                            object obj = r.GetValue(iter + startBound);
+                            values[iter] = obj is DBNull ? null : obj;
+                        }
+                    }
+                    return new SqlMapper.DapperRow(table, values);
+                };
         }
 #endif
 
@@ -855,6 +858,7 @@ namespace LX.EasyDb
 
         #endregion
 
+#if false
         #region Cache
 
         private const Int32 COLLECT_PER_ITEMS = 1000, COLLECT_HIT_COUNT_MIN = 0;
@@ -959,6 +963,7 @@ namespace LX.EasyDb
         }
 
         #endregion
+#endif
 
         #region System.Data.IDbConnection
 

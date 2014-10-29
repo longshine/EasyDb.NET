@@ -181,11 +181,13 @@ namespace LX.EasyDb
         {
             private Regex reg = new Regex("[A-Z]+(?=[a-z0-9]|$)", RegexOptions.Compiled);
 
+            /// <inheritdoc/>
             public virtual String GetColumnName(String propertyName)
             {
                 return Normalize(propertyName);
             }
 
+            /// <inheritdoc/>
             public virtual String GetTableName(String typeName)
             {
                 return Normalize(StringHelper.Unqualify(typeName));
@@ -197,6 +199,31 @@ namespace LX.EasyDb
                 {
                     return match.Index > 0 ? ("_" + match.Value.ToLowerInvariant()) : match.Value.ToLowerInvariant();
                 });
+            }
+        }
+
+        /// <summary>
+        /// Keeps same with names of types and properties.
+        /// </summary>
+        public class SameNamingStrategy : INamingStrategy
+        {
+            /// <summary>
+            /// Singleton.
+            /// </summary>
+            public static readonly SameNamingStrategy Instance = new SameNamingStrategy();
+
+            private SameNamingStrategy() { }
+
+            /// <inheritdoc/>
+            public String GetColumnName(String propertyName)
+            {
+                return propertyName;
+            }
+
+            /// <inheritdoc/>
+            public String GetTableName(String typeName)
+            {
+                return typeName;
             }
         }
 
@@ -266,7 +293,7 @@ namespace LX.EasyDb
                     if (column != null)
                     {
                         if (column.DbType == DbType.Empty)
-                            column.DbType = (DbType)SqlMapper.LookupDbType(pi.PropertyType, pi.Name);
+                            column.DbType = LookupDbType(pi.PropertyType, pi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, pi);
                         AddColumn(column);
                     }
@@ -278,7 +305,7 @@ namespace LX.EasyDb
                     if (column != null)
                     {
                         if (column.DbType == DbType.Empty)
-                            column.DbType = (DbType)SqlMapper.LookupDbType(fi.FieldType, fi.Name);
+                            column.DbType = LookupDbType(fi.FieldType, fi.Name);
                         column.MemberInfo = new SimpleMemberMap(column.ColumnName, fi);
                         AddColumn(column);
                     }
@@ -293,6 +320,12 @@ namespace LX.EasyDb
                         PrimaryKey.AddColumn(idCol);
                     }
                 }
+            }
+
+            static DbType LookupDbType(Type type, String name)
+            {
+                SqlMapper.ITypeHandler handler;
+                return (DbType)SqlMapper.LookupDbType(type, name, false, out handler);
             }
 
             internal void Phantom(Type type)
