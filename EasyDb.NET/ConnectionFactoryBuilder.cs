@@ -177,5 +177,116 @@ namespace LX.EasyDb
             }
             return (System.Data.Common.DbProviderFactory)factory;
         }
+
+        #region Shortcuts
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server with integrated security.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        public static IConnectionFactory BuildSQLServer(String server, String database)
+        {
+            return BuildSQLServer(server, database, true, null, null, new Dialects.SQLServerDialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        /// <param name="user">the name of user</param>
+        /// <param name="password">the password of user</param>
+        public static IConnectionFactory BuildSQLServer(String server, String database, String user, String password)
+        {
+            return BuildSQLServer(server, database, false, user, password, new Dialects.SQLServerDialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2005 with integrated security.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        public static IConnectionFactory BuildSQLServer2005(String server, String database)
+        {
+            return BuildSQLServer(server, database, true, null, null, new Dialects.SQLServer2005Dialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2005.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        /// <param name="user">the name of user</param>
+        /// <param name="password">the password of user</param>
+        public static IConnectionFactory BuildSQLServer2005(String server, String database, String user, String password)
+        {
+            return BuildSQLServer(server, database, false, user, password, new Dialects.SQLServer2005Dialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2008 with integrated security.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        public static IConnectionFactory BuildSQLServer2008(String server, String database)
+        {
+            return BuildSQLServer(server, database, true, null, null, new Dialects.SQLServer2008Dialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2008.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        /// <param name="user">the name of user</param>
+        /// <param name="password">the password of user</param>
+        public static IConnectionFactory BuildSQLServer2008(String server, String database, String user, String password)
+        {
+            return BuildSQLServer(server, database, false, user, password, new Dialects.SQLServer2008Dialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2012 with integrated security.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        public static IConnectionFactory BuildSQLServer2012(String server, String database)
+        {
+            return BuildSQLServer(server, database, true, null, null, new Dialects.SQLServer2012Dialect());
+        }
+
+        /// <summary>
+        /// Builds a <see cref="IConnectionFactory"/> for SQL Server 2012.
+        /// </summary>
+        /// <param name="server">the server name of the SQL Server</param>
+        /// <param name="database">the database to connect</param>
+        /// <param name="user">the name of user</param>
+        /// <param name="password">the password of user</param>
+        public static IConnectionFactory BuildSQLServer2012(String server, String database, String user, String password)
+        {
+            return BuildSQLServer(server, database, false, user, password, new Dialects.SQLServer2012Dialect());
+        }
+
+        private static IConnectionFactory BuildSQLServer(String server, String database, Boolean integratedSecurity, String user, String password, Dialect dialect)
+        {
+            System.Data.SqlClient.SqlConnectionStringBuilder builder = new System.Data.SqlClient.SqlConnectionStringBuilder();
+            builder.DataSource = server;
+            builder.InitialCatalog = database;
+            builder.IntegratedSecurity = integratedSecurity;
+            if (!integratedSecurity)
+            {
+                builder.UserID = user;
+                builder.Password = password;
+            }
+            builder.Pooling = true;
+            return NewBuilder(
+                System.Data.SqlClient.SqlClientFactory.Instance,
+                builder.ConnectionString,
+                null,
+                dialect).Build();
+        }
+
+        #endregion
     }
 }
