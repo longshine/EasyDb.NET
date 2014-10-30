@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>EasyDb</id>
+        <version>0.84</version>
+        <title>EasyDb.NET</title>
+        <authors>Longshine</authors>
+        <owners>Longshine</owners>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+        <projectUrl>https://github.com/longshine/EasyDb.NET</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>An easy database helper for .NET 2.0+, with typed query &amp; simple ORM, hibernate-like dialecting &amp; criterion query, supporting all .NET ADO providers, implemented on Dapper.</description>
+        <summary>An Easy Database Helper (Typed Query &amp; Simple ORM) for .NET</summary>
+        <tags>orm, sql, database</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System"/>
+            <frameworkAssembly assemblyName="System.Configuration"/>
+            <frameworkAssembly assemblyName="System.Data"/>
+            <frameworkAssembly assemblyName="System.Xml"/>
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.dll" target="lib\net20" />
+        <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.pdb" target="lib\net20" />
+        <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.xml" target="lib\net20" />
+        
+        <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.dll" target="lib\net40" />
+        <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.pdb" target="lib\net40" />
+        <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.xml" target="lib\net40" />
+    </files>
+</package>
