@@ -3707,10 +3707,11 @@ IParameterLookup parameters, IDbCommand command)
         static readonly MethodInfo
                     enumParse = typeof(Enum).GetMethod("Parse", new Type[] { typeof(Type), typeof(string), typeof(bool) }),
 #if NET20
-                    getItem = Enumerable.First(Enumerable.Select(
-                        Enumerable.Where(typeof(IDataRecord).GetProperties(BindingFlags.Instance | BindingFlags.Public),
-                            p => Enumerable.Any(p.GetIndexParameters()) && p.GetIndexParameters()[0].ParameterType == typeof(int)),
-                        p => p.GetGetMethod()));
+                    getItem = Enumerable.First(
+                        Enumerable.Select(
+                            Enumerable.Where(typeof(IDataRecord).GetProperties(BindingFlags.Instance | BindingFlags.Public),
+                                p => Enumerable.Any(p.GetIndexParameters()) && p.GetIndexParameters()[0].ParameterType == typeof(int)),
+                            p => p.GetGetMethod()));
 #else
                     getItem = typeof(IDataRecord).GetProperties(BindingFlags.Instance | BindingFlags.Public)
                         .Where(p => p.GetIndexParameters().Any() && p.GetIndexParameters()[0].ParameterType == typeof(int))
