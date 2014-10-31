@@ -284,8 +284,8 @@ namespace LX.EasyDb
 
                 Name = (tableAttr == null) ? namingStrategy.GetTableName(typeName) : tableAttr.Name;
                 EntityType = type;
-                _fields = ReflectHelper.GetSettableFields(type);
-                _properties = ReflectHelper.GetSettableProperties(type);
+                _fields = DefaultTypeMap.GetSettableFields(type);
+                _properties = DefaultTypeMap.GetSettableProps(type);
 
                 foreach (PropertyInfo pi in _properties)
                 {
@@ -810,6 +810,12 @@ namespace LX.EasyDb
             ConstructorInfo SqlMapper.ITypeMap.FindConstructor(String[] names, Type[] types)
             {
                 return ReflectHelper.FindConstructor(EntityType, names, types);
+            }
+
+            ConstructorInfo SqlMapper.ITypeMap.FindExplicitConstructor()
+            {
+                // TODO FindExplicitConstructor
+                return null;
             }
 
             /// <summary>

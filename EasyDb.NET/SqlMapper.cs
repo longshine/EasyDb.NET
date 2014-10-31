@@ -395,6 +395,15 @@ namespace Dapper
             ConstructorInfo FindConstructor(string[] names, Type[] types);
 
             /// <summary>
+            /// Returns a constructor which should *always* be used.
+            /// 
+            /// Parameters will be default values, nulls for reference types and zero'd for value types.
+            /// 
+            /// Use this class to force object creation away from parameterless constructors you dn't control.
+            /// </summary>
+            ConstructorInfo FindExplicitConstructor();
+
+            /// <summary>
             /// Gets mapping for constructor parameter
             /// </summary>
             /// <param name="constructor">Constructor to resolve</param>
@@ -3195,10 +3204,19 @@ IParameterLookup parameters, IDbCommand command)
 
             var il = dm.GetILGenerator();
 
-            il.DeclareLocal(type); // 0
+            bool isStruct = type.IsValueType;
             bool haveInt32Arg1 = false;
             il.Emit(OpCodes.Ldarg_1); // stack is now [untyped-param]
-            il.Emit(OpCodes.Unbox_Any, type); // stack is now [typed-param]
+            if (isStruct)
+            {
+                il.DeclareLocal(type.MakePointerType());
+                il.Emit(OpCodes.Unbox, type); // stack is now [typed-param]
+            }
+            else
+            {
+                il.DeclareLocal(type); // 0
+                il.Emit(OpCodes.Castclass, type); // stack is now [typed-param]
+            }
             il.Emit(OpCodes.Stloc_0);// stack is now empty
 
             il.Emit(OpCodes.Ldarg_0); // stack is now [command]
@@ -3269,12 +3287,13 @@ IParameterLookup parameters, IDbCommand command)
                 props = FilterParameters(props, identity.sql);
             }
 
+            var callOpCode = isStruct ? OpCodes.Call : OpCodes.Callvirt;
             foreach (var prop in props)
             {
                 if (typeof(ICustomQueryParameter).IsAssignableFrom(prop.PropertyType))
                 {
                     il.Emit(OpCodes.Ldloc_0); // stack is now [parameters] [typed-param]
-                    il.Emit(OpCodes.Callvirt, prop.GetGetMethod()); // stack is [parameters] [custom]
+                    il.Emit(callOpCode, prop.GetGetMethod()); // stack is [parameters] [custom]
                     il.Emit(OpCodes.Ldarg_0); // stack is now [parameters] [custom] [command]
                     il.Emit(OpCodes.Ldstr, prop.Name); // stack is now [parameters] [custom] [command] [name]
                     il.EmitCall(OpCodes.Callvirt, prop.PropertyType.GetMethod("AddParameter"), null); // stack is now [parameters]
@@ -3288,7 +3307,7 @@ IParameterLookup parameters, IDbCommand command)
                     il.Emit(OpCodes.Ldarg_0); // stack is now [parameters] [command]
                     il.Emit(OpCodes.Ldstr, prop.Name); // stack is now [parameters] [command] [name]
                     il.Emit(OpCodes.Ldloc_0); // stack is now [parameters] [command] [name] [typed-param]
-                    il.Emit(OpCodes.Callvirt, prop.GetGetMethod()); // stack is [parameters] [command] [name] [typed-value]
+                    il.Emit(callOpCode, prop.GetGetMethod()); // stack is [parameters] [command] [name] [typed-value]
                     if (prop.PropertyType.IsValueType)
                     {
                         il.Emit(OpCodes.Box, prop.PropertyType); // stack is [parameters] [command] [name] [boxed-value]
@@ -3322,7 +3341,7 @@ IParameterLookup parameters, IDbCommand command)
                     {
                         // look it up from the param value
                         il.Emit(OpCodes.Ldloc_0); // stack is now [parameters] [[parameters]] [parameter] [parameter] [typed-param]
-                        il.Emit(OpCodes.Callvirt, prop.GetGetMethod()); // stack is [parameters] [[parameters]] [parameter] [parameter] [object-value]
+                        il.Emit(callOpCode, prop.GetGetMethod()); // stack is [parameters] [[parameters]] [parameter] [parameter] [object-value]
                         il.Emit(OpCodes.Call, typeof(SqlMapper).GetMethod("GetDbType", BindingFlags.Static | BindingFlags.Public)); // stack is now [parameters] [[parameters]] [parameter] [parameter] [db-type]
                     }
                     else
@@ -3339,7 +3358,7 @@ IParameterLookup parameters, IDbCommand command)
 
                 il.Emit(OpCodes.Dup);// stack is now [parameters] [[parameters]] [parameter] [parameter]
                 il.Emit(OpCodes.Ldloc_0); // stack is now [parameters] [[parameters]] [parameter] [parameter] [typed-param]
-                il.Emit(OpCodes.Callvirt, prop.GetGetMethod()); // stack is [parameters] [[parameters]] [parameter] [parameter] [typed-value]
+                il.Emit(callOpCode, prop.GetGetMethod()); // stack is [parameters] [[parameters]] [parameter] [parameter] [typed-value]
                 bool checkForNull = true;
                 if (prop.PropertyType.IsValueType)
                 {
@@ -3467,7 +3486,7 @@ IParameterLookup parameters, IDbCommand command)
                     {
                         il.Emit(OpCodes.Ldstr, literal.Token);
                         il.Emit(OpCodes.Ldloc_0); // command, sql, typed parameter
-                        il.EmitCall(OpCodes.Callvirt, prop.GetGetMethod(), null); // command, sql, typed value
+                        il.EmitCall(callOpCode, prop.GetGetMethod(), null); // command, sql, typed value
                         Type propType = prop.PropertyType;
                         var typeCode = Type.GetTypeCode(propType);
                         switch (typeCode)
@@ -3873,30 +3892,71 @@ Type type, IDataReader reader, int startBound = 0, int length = -1, bool returnN
                     types[i - startBound] = (member == null) ? reader.GetFieldType(i) : member.MemberType;
                 }
 
-                var ctor = typeMap.FindConstructor(names, types);
-                if (ctor == null)
+                var explicitConstr = typeMap.FindExplicitConstructor();
+                if (explicitConstr != null)
                 {
-#if NET20
-                    String proposedTypes = "(" + String.Join(", ", Enumerable.ToArray(Enumerable.Select(types, (t, i) => t.FullName + " " + names[i]))) + ")";
-#else
-                    string proposedTypes = "(" + string.Join(", ", types.Select((t, i) => t.FullName + " " + names[i]).ToArray()) + ")";
-#endif
-                    throw new InvalidOperationException(string.Format("A parameterless default constructor or one matching signature {0} is required for {1} materialization", proposedTypes, type.FullName));
-                }
+                    var structLocals = new Dictionary<Type, LocalBuilder>();
 
-                if (ctor.GetParameters().Length == 0)
-                {
-                    il.Emit(OpCodes.Newobj, ctor);
+                    var consPs = explicitConstr.GetParameters();
+                    foreach(var p in consPs)
+                    {
+                        if(!p.ParameterType.IsValueType)
+                        {
+                            il.Emit(OpCodes.Ldnull);
+                        }
+                        else
+                        {
+                            LocalBuilder loc;
+                            if(!structLocals.TryGetValue(p.ParameterType, out loc))
+                            {
+                                structLocals[p.ParameterType] = loc = il.DeclareLocal(p.ParameterType);
+                            }
+
+                            il.Emit(OpCodes.Ldloca, (short)loc.LocalIndex);
+                            il.Emit(OpCodes.Initobj, p.ParameterType);
+                            il.Emit(OpCodes.Ldloca, (short)loc.LocalIndex);
+                            il.Emit(OpCodes.Ldobj, p.ParameterType);
+                        }
+                    }
+
+                    il.Emit(OpCodes.Newobj, explicitConstr);
                     il.Emit(OpCodes.Stloc_1);
                     supportInitialize = typeof(ISupportInitialize).IsAssignableFrom(type);
-                    if(supportInitialize)
+                    if (supportInitialize)
                     {
                         il.Emit(OpCodes.Ldloc_1);
                         il.EmitCall(OpCodes.Callvirt, typeof(ISupportInitialize).GetMethod("BeginInit"), null);
                     }
                 }
                 else
-                    specializedConstructor = ctor;
+                {
+                    var ctor = typeMap.FindConstructor(names, types);
+                    if (ctor == null)
+                    {
+#if NET20
+                        String proposedTypes = "(" + String.Join(", ", Enumerable.ToArray(Enumerable.Select(types, (t, i) => t.FullName + " " + names[i]))) + ")";
+#else
+                        string proposedTypes = "(" + string.Join(", ", types.Select((t, i) => t.FullName + " " + names[i]).ToArray()) + ")";
+#endif
+                        throw new InvalidOperationException(string.Format("A parameterless default constructor or one matching signature {0} is required for {1} materialization", proposedTypes, type.FullName));
+                    }
+
+                    if (ctor.GetParameters().Length == 0)
+                    {
+                        il.Emit(OpCodes.Newobj, ctor);
+                        il.Emit(OpCodes.Stloc_1);
+                        supportInitialize = typeof(ISupportInitialize).IsAssignableFrom(type);
+                        if (supportInitialize)
+                        {
+                            il.Emit(OpCodes.Ldloc_1);
+                            il.EmitCall(OpCodes.Callvirt, typeof(ISupportInitialize).GetMethod("BeginInit"), null);
+                        }
+                    }
+                    else
+                    {
+                        specializedConstructor = ctor;
+                    }
+                }
             }
 
             il.BeginExceptionBlock();
@@ -5604,6 +5664,26 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
         }
 
         /// <summary>
+        /// Returns the constructor, if any, that has the ExplicitConstructorAttribute on it.
+        /// </summary>
+        public ConstructorInfo FindExplicitConstructor()
+        {
+            var constructors = _type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+#if NET20
+            var withAttr = Enumerable.ToList(Enumerable.Where(constructors, c => c.GetCustomAttributes(typeof(ExplicitConstructorAttribute), true).Length > 0));
+#else
+            var withAttr = constructors.Where(c => c.GetCustomAttributes(typeof(ExplicitConstructorAttribute), true).Length > 0).ToList();
+#endif
+
+            if (withAttr.Count == 1)
+            {
+                return withAttr[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets mapping for constructor parameter
         /// </summary>
         /// <param name="constructor">Constructor to resolve</param>
@@ -5630,22 +5710,21 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
 #if NET20
             var property = Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
                ?? Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
-
-            if (property == null && MatchNamesWithUnderscores)
-            {
-                property = Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
-                    ?? Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
-            }
 #else
             var property = _properties.FirstOrDefault(p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
                ?? _properties.FirstOrDefault(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
+#endif
 
             if (property == null && MatchNamesWithUnderscores)
             {
+#if NET20
+                property = Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
+                    ?? Enumerable.FirstOrDefault(_properties, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+#else
                 property = _properties.FirstOrDefault(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
                     ?? _properties.FirstOrDefault(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
-            }
 #endif
+            }
 
             if (property != null)
                 return new SimpleMemberMap(columnName, property);
@@ -5653,22 +5732,21 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
 #if NET20
             var field = Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
                ?? Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
-
-            if (field == null && MatchNamesWithUnderscores)
-            {
-                field = Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
-                    ?? Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
-            }
 #else
             var field = _fields.FirstOrDefault(p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
                ?? _fields.FirstOrDefault(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
+#endif
 
             if (field == null && MatchNamesWithUnderscores)
             {
+#if NET20
+                field = Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
+                    ?? Enumerable.FirstOrDefault(_fields, p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+#else
                 field = _fields.FirstOrDefault(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
                     ?? _fields.FirstOrDefault(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
-            }
 #endif
+            }
 
             if (field != null)
                 return new SimpleMemberMap(columnName, field);
@@ -5717,6 +5795,15 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
         public ConstructorInfo FindConstructor(string[] names, Type[] types)
         {
             return _type.GetConstructor(new Type[0]);
+        }
+
+        /// <summary>
+        /// Always returns null
+        /// </summary>
+        /// <returns></returns>
+        public ConstructorInfo FindExplicitConstructor()
+        {
+            return null;
         }
 
         /// <summary>
@@ -5955,6 +6042,15 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
         /// Obtain the underlying command
         /// </summary>
         IDbCommand Command { get; }
+    }
+
+    /// <summary>
+    /// Tell Dapper to use an explicit constructor, passing nulls or 0s for all parameters
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false)]
+    public sealed class ExplicitConstructorAttribute : Attribute
+    {
+
     }
 
     // Define DAPPER_MAKE_PRIVATE if you reference Dapper by source

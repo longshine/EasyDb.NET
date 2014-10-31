@@ -521,7 +521,7 @@ namespace LX.EasyDb
                     return null;
 
                 obj = ProxyGenerator.GetInterfaceProxy(type);
-                foreach (var property in ReflectHelper.GetSettableProperties(type))
+                foreach (var property in DefaultTypeMap.GetSettableProps(type))
                 {
                     var val = res[property.Name];
                     property.SetValue(obj, val, null);
