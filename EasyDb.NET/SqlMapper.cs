@@ -6100,11 +6100,27 @@ string name, object value = null, DbType? dbType = null, ParameterDirection? dir
         internal partial class CacheInfo
         { }
 
+#if !CSHARP30
         internal partial class DapperTable
-        { }
+        {
+            public DapperTable(string[] fieldNames, StringComparer fieldNameComparer)
+            {
+                if (fieldNames == null) throw new ArgumentNullException("fieldNames");
+                this.fieldNames = fieldNames;
+
+                fieldNameLookup = new Dictionary<string, int>(fieldNames.Length, fieldNameComparer);
+                // if there are dups, we want the **first** key to be the "winner" - so iterate backwards
+                for (int i = fieldNames.Length - 1; i >= 0; i--)
+                {
+                    string key = fieldNames[i];
+                    if (key != null) fieldNameLookup[key] = i;
+                }
+            }
+        }
 
         internal partial class DapperRow
         { }
+#endif
     }
 
     internal static class SqlMapperExtensions

@@ -590,7 +590,8 @@ namespace LX.EasyDb
 
             return r =>
             {
-                IDictionary<String, Object> row = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+                IDictionary<String, Object> row = (table == null || table.ColumnNameComparer == null) ?
+                    new Dictionary<String, Object>() : new Dictionary<String, Object>(table.ColumnNameComparer);
                 for (var i = startBound; i < startBound + length; i++)
                 {
                     var tmp = r.GetValue(i);
@@ -673,7 +674,8 @@ namespace LX.EasyDb
                             if (mt != null)
                                 names[i] = mt.GetFieldName(names[i]);
                         }
-                        table = new SqlMapper.DapperTable(names);
+                        table = (mt == null || mt.ColumnNameComparer == null) ?
+                            new SqlMapper.DapperTable(names) : new SqlMapper.DapperTable(names, mt.ColumnNameComparer);
                     }
 
                     var values = new object[effectiveFieldCount];

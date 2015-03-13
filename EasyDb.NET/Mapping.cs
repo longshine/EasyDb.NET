@@ -265,6 +265,7 @@ namespace LX.EasyDb
             private List<String> _checkConstraints = new List<String>();
             private readonly IEnumerable<FieldInfo> _fields;
             private readonly IEnumerable<PropertyInfo> _properties;
+            private StringComparer _columnNameComparer;
 
             /// <summary>
             /// Initializes an empty mapping table.
@@ -371,6 +372,15 @@ namespace LX.EasyDb
                 }
 
                 return column;
+            }
+
+            /// <summary>
+            /// Gets or sets the <see cref="StringComparer"/> for comparing names of columns.
+            /// </summary>
+            public StringComparer ColumnNameComparer
+            {
+                get { return _columnNameComparer; }
+                set { _columnNameComparer = value; }
             }
 
             /// <summary>
