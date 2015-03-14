@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>EasyDb.NET</id>
-        <version>0.87</version>
+        <version>0.88</version>
         <title>EasyDb.NET</title>
         <authors>Longshine</authors>
         <owners>Longshine</owners>
@@ -11,16 +11,20 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>An easy database helper for .NET 2.0+, with typed query &amp; simple ORM, hibernate-like dialecting &amp; criterion query, supporting all .NET ADO providers, implemented on Dapper.</description>
         <summary>An Easy Database Helper (Typed Query &amp; Simple ORM) for .NET</summary>
-        <releaseNotes>* 0.87   - Update Dapper to v1.37
-*          Added: shortcut methods for building connection factory.
-*          Added: comments
+        <releaseNotes>* 0.88   - Update Dapper to v1.38
+  - Added: dependencies via NuGet
+  - Added: string comparer of column names for result set
+  - Fixed: do not auto map nonpublic fields
+* 0.87   - Update Dapper to v1.37
+  - Added: shortcut methods for building connection factory.
+  - Added: comments
 * 0.84   - First release built on Dapper
-*          Added: enhanced query helper methods
-*          Added: strong/weak typed CRUD query
-*          Added: custom ORM attributes
-*          Added: criterion query
-*          Added: dialecting</releaseNotes>
-        <tags>orm, sql, database</tags>
+  - Added: enhanced query helper methods
+  - Added: strong/weak typed CRUD query
+  - Added: custom ORM attributes
+  - Added: criterion query
+  - Added: dialecting</releaseNotes>
+        <tags>orm, sql, database, db helper, sqlite, mysql</tags>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System"/>
             <frameworkAssembly assemblyName="System.Configuration"/>
@@ -30,10 +34,8 @@
     </metadata>
     <files>
         <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.dll" target="lib\net20\EasyDb.NET.dll" />
-        <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.pdb" target="lib\net20\EasyDb.NET.pdb" />
         <file src="EasyDb.NET\bin\Release\Net20\EasyDb.NET.xml" target="lib\net20\EasyDb.NET.xml" />
         <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.dll" target="lib\net40\EasyDb.NET.dll" />
-        <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.pdb" target="lib\net40\EasyDb.NET.pdb" />
         <file src="EasyDb.NET\bin\Release\Net40\EasyDb.NET.xml" target="lib\net40\EasyDb.NET.xml" />
     </files>
 </package>
