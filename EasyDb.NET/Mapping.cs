@@ -285,7 +285,7 @@ namespace LX.EasyDb
 
                 Name = (tableAttr == null) ? namingStrategy.GetTableName(typeName) : tableAttr.Name;
                 EntityType = type;
-                _fields = DefaultTypeMap.GetSettableFields(type);
+                _fields = ReflectHelper.GetSettableFields(type);
                 _properties = DefaultTypeMap.GetSettableProps(type);
 
                 foreach (PropertyInfo pi in _properties)
