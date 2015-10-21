@@ -524,7 +524,7 @@ namespace LX.EasyDb
                 foreach (var property in DefaultTypeMap.GetSettableProps(type))
                 {
                     var val = res[property.Name];
-                    property.SetValue(obj, val, null);
+                    property.SetValue(obj, Convert.ChangeType(val, property.PropertyType), null);
                 }
 
                 ((SqlMapperExtensions.IProxy)obj).IsDirty = false;   //reset change tracking and return
@@ -691,9 +691,11 @@ namespace LX.EasyDb
 
                     if (startBound == 0)
                     {
-                        r.GetValues(values);
                         for (int i = 0; i < values.Length; i++)
-                            if (values[i] is DBNull) values[i] = null;
+                        {
+                            object val = r.GetValue(i);
+                            values[i] = val is DBNull ? null : val;
+                        }
                     }
                     else
                     {
@@ -778,19 +780,19 @@ namespace LX.EasyDb
                                              getSetAttr,
                                              propType,
                                              Type.EmptyTypes);
-                var currGetIL = currGetPropMthdBldr.GetILGenerator();
-                currGetIL.Emit(OpCodes.Ldarg_0);
-                currGetIL.Emit(OpCodes.Ldfld, field);
-                currGetIL.Emit(OpCodes.Ret);
+                var currGetIl = currGetPropMthdBldr.GetILGenerator();
+                currGetIl.Emit(OpCodes.Ldarg_0);
+                currGetIl.Emit(OpCodes.Ldfld, field);
+                currGetIl.Emit(OpCodes.Ret);
                 var currSetPropMthdBldr = typeBuilder.DefineMethod("set_" + "IsDirty",
                                              getSetAttr,
                                              null,
                                              new Type[] { propType });
-                var currSetIL = currSetPropMthdBldr.GetILGenerator();
-                currSetIL.Emit(OpCodes.Ldarg_0);
-                currSetIL.Emit(OpCodes.Ldarg_1);
-                currSetIL.Emit(OpCodes.Stfld, field);
-                currSetIL.Emit(OpCodes.Ret);
+                var currSetIl = currSetPropMthdBldr.GetILGenerator();
+                currSetIl.Emit(OpCodes.Ldarg_0);
+                currSetIl.Emit(OpCodes.Ldarg_1);
+                currSetIl.Emit(OpCodes.Stfld, field);
+                currSetIl.Emit(OpCodes.Ret);
 
                 property.SetGetMethod(currGetPropMthdBldr);
                 property.SetSetMethod(currSetPropMthdBldr);
@@ -820,10 +822,10 @@ namespace LX.EasyDb
                                              propType,
                                              Type.EmptyTypes);
 
-                var currGetIL = currGetPropMthdBldr.GetILGenerator();
-                currGetIL.Emit(OpCodes.Ldarg_0);
-                currGetIL.Emit(OpCodes.Ldfld, field);
-                currGetIL.Emit(OpCodes.Ret);
+                var currGetIl = currGetPropMthdBldr.GetILGenerator();
+                currGetIl.Emit(OpCodes.Ldarg_0);
+                currGetIl.Emit(OpCodes.Ldfld, field);
+                currGetIl.Emit(OpCodes.Ret);
 
                 var currSetPropMthdBldr = typeBuilder.DefineMethod("set_" + propertyName,
                                              getSetAttr,
@@ -831,14 +833,14 @@ namespace LX.EasyDb
                                              new Type[] { propType });
 
                 //store value in private field and set the isdirty flag
-                var currSetIL = currSetPropMthdBldr.GetILGenerator();
-                currSetIL.Emit(OpCodes.Ldarg_0);
-                currSetIL.Emit(OpCodes.Ldarg_1);
-                currSetIL.Emit(OpCodes.Stfld, field);
-                currSetIL.Emit(OpCodes.Ldarg_0);
-                currSetIL.Emit(OpCodes.Ldc_I4_1);
-                currSetIL.Emit(OpCodes.Call, setIsDirtyMethod);
-                currSetIL.Emit(OpCodes.Ret);
+                var currSetIl = currSetPropMthdBldr.GetILGenerator();
+                currSetIl.Emit(OpCodes.Ldarg_0);
+                currSetIl.Emit(OpCodes.Ldarg_1);
+                currSetIl.Emit(OpCodes.Stfld, field);
+                currSetIl.Emit(OpCodes.Ldarg_0);
+                currSetIl.Emit(OpCodes.Ldc_I4_1);
+                currSetIl.Emit(OpCodes.Call, setIsDirtyMethod);
+                currSetIl.Emit(OpCodes.Ret);
 
                 //TODO: Should copy all attributes defined by the interface?
                 if (isIdentity)

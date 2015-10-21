@@ -129,69 +129,6 @@ namespace LX.EasyDb
             return mi.IsDefined(typeof(T), true);
         }
 
-        public static ConstructorInfo FindConstructor(Type type, String[] names, Type[] types)
-        {
-#if NET20
-            var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Array.Sort(constructors, delegate(ConstructorInfo c1, ConstructorInfo c2)
-            {
-                if (c1.IsPrivate && c2.IsPublic)
-                    return 1;
-                else if (c1.IsPublic && c2.IsPrivate)
-                    return -1;
-                else
-                    return c1.GetParameters().Length.CompareTo(c2.GetParameters().Length);
-            });
-            foreach (ConstructorInfo ctor in constructors)
-#else
-            var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            foreach (ConstructorInfo ctor in constructors.OrderBy(c => c.IsPublic ? 0 : (c.IsPrivate ? 2 : 1)).ThenBy(c => c.GetParameters().Length))
-#endif
-            {
-                ParameterInfo[] ctorParameters = ctor.GetParameters();
-
-                if (ctorParameters.Length == 0)
-                    return ctor;
-
-                if (ctorParameters.Length != types.Length)
-                    continue;
-
-                Int32 i = 0;
-                for (; i < ctorParameters.Length; i++)
-                {
-                    if (!String.Equals(ctorParameters[i].Name, names[i], StringComparison.OrdinalIgnoreCase))
-                        break;
-                    if (types[i] == typeof(Byte[]) && ctorParameters[i].ParameterType.FullName == Dapper.SqlMapper.LinqBinary)
-                        continue;
-                    if (ctorParameters[i].ParameterType == types[i])
-                        continue;
-                    var unboxedType = Nullable.GetUnderlyingType(ctorParameters[i].ParameterType) ?? ctorParameters[i].ParameterType;
-                    if (unboxedType != types[i]
-                        && !(unboxedType.IsEnum && Enum.GetUnderlyingType(unboxedType) == types[i])
-                        && !(unboxedType.IsEnum && types[i].IsPrimitive && types[i] != typeof(Boolean))
-                        && !(unboxedType == typeof(Char) && types[i] == typeof(String)))
-                        break;
-                }
-
-                if (i == ctorParameters.Length)
-                    return ctor;
-            }
-            return null;
-        }
-
-        public static MethodInfo GetPropertySetter(PropertyInfo propertyInfo, Type type)
-        {
-            return propertyInfo.DeclaringType == type ?
-                propertyInfo.GetSetMethod(true) :
-                propertyInfo.DeclaringType.GetProperty(propertyInfo.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetSetMethod(true);
-        }
-
-        public static IEnumerable<PropertyInfo> GetSettableProperties(Type type)
-        {
-            return Array.FindAll(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
-                delegate(PropertyInfo p) { return GetPropertySetter(p, type) != null; });
-        }
-
         public static IEnumerable<FieldInfo> GetSettableFields(Type type)
         {
             return type.GetFields(BindingFlags.Public | BindingFlags.Instance);

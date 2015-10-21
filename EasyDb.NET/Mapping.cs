@@ -819,7 +819,7 @@ namespace LX.EasyDb
             /// <returns>the matching constructor or default one</returns>
             ConstructorInfo SqlMapper.ITypeMap.FindConstructor(String[] names, Type[] types)
             {
-                return ReflectHelper.FindConstructor(EntityType, names, types);
+                return DefaultTypeMap.FindConstructor(EntityType, names, types);
             }
 
             ConstructorInfo SqlMapper.ITypeMap.FindExplicitConstructor()
