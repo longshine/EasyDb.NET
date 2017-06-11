@@ -13,7 +13,7 @@ there is the hibernate-like dialecting.
 - **Typed query**. Query results can be mapped into strongly typed or dynamic
 objects. ORMs can also be customized with help of Mapping attributes.
 - Support OO-style **Criterion query**.
-- Other features from [**Dapper**] (https://github.com/SamSaffron/dapper-dot-net).
+- Other features from [**Dapper**](https://github.com/SamSaffron/dapper-dot-net).
   EasyDb.NET is internally driven by Dapper, an amazing project by Sam Saffron.
 - Support .NET 2.0, 3.0, 3.5, 4.0.
 
@@ -28,10 +28,10 @@ Usage
 
 ### Setup
 
-A **[IConnectionFactory] (EasyDb.NET/IConnectionFactory.cs)** or the static helper class
-**[EasyDbHelper] (EasyDb.NET/EasyDbHelper.cs)** is needed for open querying connections.
+A **[IConnectionFactory](EasyDb.NET/IConnectionFactory.cs)** or the static helper class
+**[EasyDbHelper](EasyDb.NET/EasyDbHelper.cs)** is needed for open querying connections.
 
-#### Using **[IConnectionFactory] (EasyDb.NET/IConnectionFactory.cs)**
+#### Using **[IConnectionFactory](EasyDb.NET/IConnectionFactory.cs)**
 
 ```csharp
   IConnectionFactory factory;
@@ -59,7 +59,7 @@ Connections could be accquired from the factory then:
   IConnection connection = factory.OpenConnection();
 ```
 
-#### Or using the static **[EasyDbHelper] (EasyDb.NET/EasyDbHelper.cs)**
+#### Or using the static **[EasyDbHelper](EasyDb.NET/EasyDbHelper.cs)**
 
 The EasyDbHelper should also be initialized before any use. By programming
 it will be like:
@@ -101,11 +101,11 @@ Then the static helper methods are ready to use.
   IConnection connection = EasyDbHelper.OpenConnection();
 ```
 
-### Query objects with **[IConnection] (EasyDb.NET/IConnection.cs)**
+### Query objects with **[IConnection](EasyDb.NET/IConnection.cs)**
 
 Besides the conventional executing methods (ExecuteNonQuery, ExecuteScalar and
 ExecuteReader), IConnection provides 4 kinds of querying. Advanced features 
-and performance could be found at **[Readme-Dapper] (Readme-Dapper.md)**.
+and performance could be found at **[Readme-Dapper](Readme-Dapper.md)**.
 
 #### Generic query
 
@@ -196,6 +196,6 @@ See [License] (License.txt) for more info.
 Acknowledgements
 ----------------
 
-EasyDb.NET is internally driven by [**Dapper**] (https://github.com/SamSaffron/dapper-dot-net),
+EasyDb.NET is internally driven by [**Dapper**](https://github.com/SamSaffron/dapper-dot-net),
 an amazing object mapper for .Net by Sam Saffron. 
 Thanks to the author and the great job.
